@@ -28,14 +28,18 @@ public class Joystick {
         float dy = touchY - centerY;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < baseRadius) {
-            joystickX = touchX;
-            joystickY = touchY;
-        } else {
-            joystickX = centerX + dx / distance * baseRadius;
-            joystickY = centerY + dy / distance * baseRadius;
+
+        float maxDistance = baseRadius * 1.25f;
+        if (distance > maxDistance) {
+            dx = dx / distance * maxDistance;
+            dy = dy / distance * maxDistance;
+            distance = maxDistance;
         }
+
+        joystickX = centerX + dx;
+        joystickY = centerY + dy;
     }
+
 
     public void reset() {
         joystickX = centerX;

@@ -36,7 +36,7 @@ public class MainGameScene extends GameScene {
         _backgroundBitmap0 = Bitmap.createScaledBitmap(bmp, screenWidth, screenHeight, true);
         _backgroundBitmap1 = Bitmap.createScaledBitmap(bmp, screenWidth, screenHeight, true);
 
-        joystick = new Joystick(screenWidth / 6f, screenHeight * 4f / 5f, 150, 75);
+        joystick = new Joystick(screenWidth / 8f, screenHeight * 4f / 5.5f, 150, 75);
 
         _gameEntities.add(new PlayerEntity());
 
