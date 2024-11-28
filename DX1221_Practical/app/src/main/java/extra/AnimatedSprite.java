@@ -89,5 +89,14 @@ public class AnimatedSprite {
         canvas.drawBitmap(_bmp, _src, _dst, paint);
     }
 
+    public int getWidth() {
+        return _width; // Width of a single frame
+    }
+
+    public int getHeight() {
+        return _height; // Height of a single frame
+    }
+
+
 
 }

@@ -130,4 +130,9 @@ public class MainGameScene extends GameScene {
     public Joystick getJoystick() {
         return joystick;
     }
+
+    public List<Platform> getPlatforms() {
+        return platforms;
+    }
+
 }
