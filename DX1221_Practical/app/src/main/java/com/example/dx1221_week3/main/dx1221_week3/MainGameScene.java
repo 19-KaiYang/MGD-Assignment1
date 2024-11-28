@@ -29,6 +29,11 @@ public class MainGameScene extends GameScene {
     private Joystick joystick;
     private final List<Platform> platforms = new ArrayList<>();
 
+    //For Jumping
+
+    private boolean isJumpButtonPressed = false;
+    private float jumpButtonX, jumpButtonY, jumpButtonRadius;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -48,12 +53,17 @@ public class MainGameScene extends GameScene {
         player = new PlayerEntity();
         _gameEntities.add(player);
 
-        // Initialize joystick
-        joystick = new Joystick(screenWidth / 8f, screenHeight * 4f / 5.5f, 150, 75);
+        // Initialize joystick with stickiness
+        joystick = new Joystick(screenWidth / 8f, screenHeight * 4f / 5.5f, 150, 75, true); // The `true` enables sticky mode
 
         // Add platforms
-        platforms.add(new Platform(0, screenHeight - 200, screenWidth, 100)); // Ground platform
+        //platforms.add(new Platform(0, screenHeight - 200, screenWidth, 100));
         platforms.add(new Platform(screenWidth / 2f, screenHeight - 400, 300, 40)); // Floating platform
+
+        // Initialize jump button
+        jumpButtonRadius = 100;
+        jumpButtonX = screenWidth - jumpButtonRadius - 150; // Right corner of the screen
+        jumpButtonY = screenHeight - jumpButtonRadius - 130;
     }
 
     @Override
@@ -61,18 +71,40 @@ public class MainGameScene extends GameScene {
         MotionEvent event = GameActivity.instance.getMotionEvent();
         if (event != null) {
             int action = event.getActionMasked();
+            float touchX = event.getX();
+            float touchY = event.getY();
+
             if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
-                float touchX = event.getX();
-                float touchY = event.getY();
-                if (joystick.isTouched() || Math.hypot(touchX - joystick.getCenterX(), touchY - joystick.getCenterY()) <= joystick.getBaseRadius()) {
+                // Handle jump button
+                if (Math.hypot(touchX - jumpButtonX, touchY - jumpButtonY) <= jumpButtonRadius) {
+                    isJumpButtonPressed = true;
+                }
+
+                // Handle joystick
+                if (Math.hypot(touchX - joystick.getCenterX(), touchY - joystick.getCenterY()) <= joystick.getBaseRadius()) {
                     joystick.setTouched(true);
                     joystick.update(touchX, touchY);
-                } else {
-                    joystick.setTouched(false);
                 }
             } else if (action == MotionEvent.ACTION_UP) {
-                joystick.reset();
+                // Reset only the jump button
+                isJumpButtonPressed = false;
+
+                // Do not reset the joystick if sticky mode is enabled
+                if (!joystick.isSticky()) {
+                    joystick.reset();
+                }
             }
+        }
+
+        // Trigger jump if the button is pressed
+        if (isJumpButtonPressed) {
+            player.jump();
+        }
+
+        // Update player position based on joystick input
+        if (joystick.isTouched() || joystick.isSticky()) { // Check for sticky mode
+            float deltaX = joystick.getHorizontalPercentage() * 300 * dt; // Adjust speed as necessary
+            player.setPositionX(player.getPositionX() + deltaX);
         }
 
         // Update camera to follow the player horizontally
@@ -125,6 +157,12 @@ public class MainGameScene extends GameScene {
         hatPaint.setStyle(Paint.Style.FILL);
 
         joystick.draw(canvas, basePaint, hatPaint);
+
+        // Render jump button
+        Paint jumpButtonPaint = new Paint();
+        jumpButtonPaint.setColor(Color.RED);
+        jumpButtonPaint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(jumpButtonX, jumpButtonY, jumpButtonRadius, jumpButtonPaint);
     }
 
     public Joystick getJoystick() {

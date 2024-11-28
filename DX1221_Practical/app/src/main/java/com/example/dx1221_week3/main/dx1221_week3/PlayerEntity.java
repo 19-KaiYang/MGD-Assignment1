@@ -35,13 +35,12 @@ public class PlayerEntity extends GameEntity {
         _animatedSprite = new AnimatedSprite(spriteSheet, 1, 12, 24);
     }
 
-    /*public void jump() {
+    public void jump() {
         if (isOnPlatform) {
             velocityY = jumpVelocity; // Apply upward velocity
             isOnPlatform = false; // Leave platform
         }
-    }*/
-
+    }
     @Override
     public void onUpdate(float dt) {
         // Horizontal movement
@@ -144,6 +143,11 @@ public class PlayerEntity extends GameEntity {
     private float getWidth() {
         return _animatedSprite.getWidth();
     }
+
+    public void setPositionX(float x) {
+        _position.x = x;
+    }
+
 
     public float getPositionX() {
         return _position.x;

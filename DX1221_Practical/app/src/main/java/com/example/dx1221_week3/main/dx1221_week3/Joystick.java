@@ -9,13 +9,23 @@ public class Joystick {
     private float joystickX, joystickY;
     private boolean isTouched = false;
 
-    public Joystick(float centerX, float centerY, float baseRadius, float hatRadius) {
+
+
+    private float lastHorizontalPercentage = 0f;
+    private float lastVerticalPercentage = 0f;
+    private boolean isSticky = false;
+
+
+    public Joystick(float centerX, float centerY, float baseRadius, float hatRadius, boolean isSticky) {
         this.centerX = centerX;
         this.centerY = centerY;
         this.baseRadius = baseRadius;
         this.hatRadius = hatRadius;
         this.joystickX = centerX;
         this.joystickY = centerY;
+
+
+
     }
 
     public void draw(Canvas canvas, Paint basePaint, Paint hatPaint) {
@@ -28,24 +38,28 @@ public class Joystick {
         float dy = touchY - centerY;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
 
-
-        float maxDistance = baseRadius * 1.25f;
-        if (distance > maxDistance) {
-            dx = dx / distance * maxDistance;
-            dy = dy / distance * maxDistance;
-            distance = maxDistance;
+        if (distance > baseRadius) {
+            dx *= baseRadius / distance;
+            dy *= baseRadius / distance;
         }
 
         joystickX = centerX + dx;
         joystickY = centerY + dy;
-    }
 
+        lastHorizontalPercentage = dx / baseRadius;
+        lastVerticalPercentage = dy / baseRadius;
+    }
 
     public void reset() {
         joystickX = centerX;
         joystickY = centerY;
-        isTouched = false;
+
+        if (!isSticky) {
+            lastHorizontalPercentage = 0f;
+            lastVerticalPercentage = 0f;
+        }
     }
+
 
     public float getHorizontalPercentage() {
         return (joystickX - centerX) / baseRadius;
@@ -74,4 +88,9 @@ public class Joystick {
     public double getBaseRadius() {
         return baseRadius;
     }
+
+    public boolean isSticky() {
+        return isSticky;
+    }
+
 }
