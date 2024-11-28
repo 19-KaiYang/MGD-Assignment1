@@ -36,4 +36,6 @@ public class MainMenu extends Activity implements View.OnClickListener {
             GameScene.enter(MainGameScene.class);
         }
     }
+
+
 }

@@ -27,7 +27,7 @@ public class AnimatedSprite {
         _width = _bmp.getWidth() / _col;
         _height = _bmp.getHeight() / row;
         _timePerFrame = 1f / fps;
-        _endFrame = _col * row;
+        _endFrame = (_col * row) - 1;
         _src = new Rect();
         _dst = new Rect();
     }
@@ -47,20 +47,31 @@ public class AnimatedSprite {
 
     public void update(float dt) {
         if (hasFinished()) return;
+
         _timeAccumulated += dt;
         if (_timeAccumulated > _timePerFrame) {
+            _timeAccumulated -= _timePerFrame;
+
+            // Increment frame and reset
             _currentFrame++;
-            if (_currentFrame > _endFrame && _isLooping)
-                _currentFrame = _startFrame;
-            _timeAccumulated = 0f;
+            if (_currentFrame > _endFrame) {
+                if (_isLooping) {
+                    _currentFrame = _startFrame;
+                } else {
+                    _currentFrame = _endFrame;
+                }
+            }
         }
     }
+
 
     public void render(Canvas canvas, int x, int y, Paint paint) {
         int frameX = _currentFrame % _col;
         int frameY = _currentFrame / _col;
+
+        // Calculate source rectangle for the current frame
         int srcX = frameX * _width;
-        int srcY = frameY & _height;
+        int srcY = frameY * _height;
 
         x -= (int) (0.5f * _width);
         y -= (int) (0.5f * _height);
@@ -77,4 +88,6 @@ public class AnimatedSprite {
 
         canvas.drawBitmap(_bmp, _src, _dst, paint);
     }
+
+
 }
