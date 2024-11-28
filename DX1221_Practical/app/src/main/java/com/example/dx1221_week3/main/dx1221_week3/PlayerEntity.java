@@ -33,17 +33,9 @@ public class PlayerEntity extends GameEntity {
         Joystick joystick = ((MainGameScene) GameScene.getCurrent()).getJoystick();
         if (joystick.isTouched()) {
             float deltaX = joystick.getHorizontalPercentage() * 300 * dt;
-            float deltaY = joystick.getVerticalPercentage() * 300 * dt;
 
+            // Allow horizontal movement only (no clamping)
             _position.x += deltaX;
-            _position.y += deltaY;
-
-            // Prevent player from going out of bounds
-            int screenWidth = GameActivity.instance.getResources().getDisplayMetrics().widthPixels;
-            int screenHeight = GameActivity.instance.getResources().getDisplayMetrics().heightPixels;
-
-            _position.x = Math.max(0, Math.min(screenWidth, _position.x));
-            _position.y = Math.max(0, Math.min(screenHeight, _position.y));
         }
 
         // Update animation frames
@@ -56,4 +48,11 @@ public class PlayerEntity extends GameEntity {
         _animatedSprite.render(canvas, (int) _position.x, (int) _position.y, null);
     }
 
+    public float getPositionX() {
+        return _position.x;
+    }
+
+    public float getPositionY() {
+        return _position.y;
+    }
 }
