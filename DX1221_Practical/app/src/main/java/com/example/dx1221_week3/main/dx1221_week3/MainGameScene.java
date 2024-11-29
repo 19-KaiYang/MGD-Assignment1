@@ -44,6 +44,12 @@ public class MainGameScene extends GameScene {
 
     //Inventory
     private TrashBin inventoryItem = null;
+    private Bitmap inventoryIcon = null; // Current inventory item icon
+    private final float inventoryX = 50; // X position for inventory UI
+    private final float inventoryY = 50; // Y position for inventory UI
+    private final float inventoryWidth = 100; // Width for the inventory icon
+    private final float inventoryHeight = 100; // Height for the inventory icon
+
 
 
     @Override
@@ -219,7 +225,19 @@ public class MainGameScene extends GameScene {
         }
         pickUpButtonPaint.setStyle(Paint.Style.FILL);
         canvas.drawCircle(pickUpButtonX, pickUpButtonY, pickUpButtonRadius, pickUpButtonPaint);
+
+        // Render inventory UI
+        Paint inventoryPaint = new Paint();
+        inventoryPaint.setColor(Color.DKGRAY); // Background for inventory slot
+        canvas.drawRect(inventoryX, inventoryY, inventoryX + inventoryWidth, inventoryY + inventoryHeight, inventoryPaint);
+
+        if (inventoryIcon != null) {
+            // Draw the current inventory icon
+            canvas.drawBitmap(inventoryIcon, null,
+                    new android.graphics.RectF(inventoryX, inventoryY, inventoryX + inventoryWidth, inventoryY + inventoryHeight), null);
+        }
     }
+
 
 
     public List<Platform> getPlatforms() {
@@ -237,6 +255,7 @@ public class MainGameScene extends GameScene {
                 if (!trashBin.isPickedUp() && checkCollision(player, trashBin)) {
                     trashBin.pickUp(); // Mark as picked up
                     inventoryItem = trashBin; // Store in inventory
+                    inventoryIcon = trashBin.getIcon(); // Set inventory icon
                     break; // Only pick up one trash bin
                 }
             }
@@ -244,6 +263,7 @@ public class MainGameScene extends GameScene {
             // Inventory is full: Drop the current item
             inventoryItem.drop(player.getPositionX(), player.getPositionY() + 100); // Drop near the player
             inventoryItem = null; // Clear the inventory
+            inventoryIcon = null; // Clear inventory icon
         }
     }
 

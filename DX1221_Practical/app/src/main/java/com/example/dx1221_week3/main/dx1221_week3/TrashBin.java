@@ -149,5 +149,10 @@ public class TrashBin extends GameEntity {
         isPickedUp = false; // Mark as no longer picked up
     }
 
+    public Bitmap getIcon() {
+        return trashBinImage; // Assuming `trashBinImage` is the Bitmap representing the trash bin
+    }
+
+
 
 }
