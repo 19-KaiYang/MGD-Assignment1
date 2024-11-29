@@ -51,6 +51,13 @@ public class MainGameScene extends GameScene {
     private final float inventoryHeight = 100; // Height for the inventory icon
 
 
+    //Pointers
+    private int joystickPointerId = -1; // Pointer ID for joystick
+    private int jumpButtonPointerId = -1; // Pointer ID for jump button
+    private int pickUpButtonPointerId = -1; // Pointer ID for pick-up/drop button
+
+
+
 
     @Override
     public void onCreate() {
@@ -99,51 +106,74 @@ public class MainGameScene extends GameScene {
         MotionEvent event = GameActivity.instance.getMotionEvent();
         if (event != null) {
             int action = event.getActionMasked();
-            float touchX = event.getX();
-            float touchY = event.getY();
+            int pointerIndex = event.getActionIndex();
+            int pointerId = event.getPointerId(pointerIndex);
+            float touchX = event.getX(pointerIndex);
+            float touchY = event.getY(pointerIndex);
 
-            if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
-                // Handle jump button
-                if (Math.hypot(touchX - jumpButtonX, touchY - jumpButtonY) <= jumpButtonRadius) {
-                    isJumpButtonPressed = true;
-                }
+            switch (action) {
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_POINTER_DOWN:
+                    // Handle joystick
+                    if (Math.hypot(touchX - joystick.getCenterX(), touchY - joystick.getCenterY()) <= joystick.getBaseRadius() && joystickPointerId == -1) {
+                        joystickPointerId = pointerId;
+                        joystick.setTouched(true);
+                        joystick.update(touchX, touchY);
+                    }
+                    // Handle jump button
+                    else if (Math.hypot(touchX - jumpButtonX, touchY - jumpButtonY) <= jumpButtonRadius && jumpButtonPointerId == -1) {
+                        jumpButtonPointerId = pointerId;
+                        isJumpButtonPressed = true;
+                    }
+                    // Handle pick-up/drop button
+                    else if (Math.hypot(touchX - pickUpButtonX, touchY - pickUpButtonY) <= pickUpButtonRadius && pickUpButtonPointerId == -1) {
+                        pickUpButtonPointerId = pointerId;
+                        if (!wasPickUpButtonPressed) {
+                            isPickUpButtonPressed = true;
+                            handlePickUpOrDrop(); // Execute pick-up/drop logic
+                            wasPickUpButtonPressed = true; // Prevent spamming
+                        }
+                    }
+                    break;
 
-                // Handle pick-up/drop button
-                if (Math.hypot(touchX - pickUpButtonX, touchY - pickUpButtonY) <= pickUpButtonRadius) {
-                    isPickUpButtonPressed = true;
-                }
+                case MotionEvent.ACTION_MOVE:
+                    for (int i = 0; i < event.getPointerCount(); i++) {
+                        int movePointerId = event.getPointerId(i);
+                        float moveTouchX = event.getX(i);
+                        float moveTouchY = event.getY(i);
 
-                // Handle joystick
-                if (Math.hypot(touchX - joystick.getCenterX(), touchY - joystick.getCenterY()) <= joystick.getBaseRadius()) {
-                    joystick.setTouched(true);
-                    joystick.update(touchX, touchY);
-                }
-            } else if (action == MotionEvent.ACTION_UP) {
-                // Reset jump button
-                if (Math.hypot(touchX - jumpButtonX, touchY - jumpButtonY) <= jumpButtonRadius) {
-                    isJumpButtonPressed = false;
-                }
+                        if (movePointerId == joystickPointerId) {
+                            joystick.update(moveTouchX, moveTouchY);
+                        } else if (movePointerId == jumpButtonPointerId) {
+                            isJumpButtonPressed = true; // Ensure jump button stays active
+                        } else if (movePointerId == pickUpButtonPointerId) {
+                            // Optional: Handle pick-up/drop move logic if needed
+                        }
+                    }
+                    break;
 
-                // Reset pick-up/drop button
-                if (Math.hypot(touchX - pickUpButtonX, touchY - pickUpButtonY) <= pickUpButtonRadius) {
-                    isPickUpButtonPressed = false;
-                }
-
-                // Handle joystick release
-                if (joystick.isTouched()) {
-                    joystick.setTouched(false); // Ensure touch state is cleared
-                    joystick.reset();           // Reset joystick position
-                }
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_POINTER_UP:
+                    // Reset joystick when its pointer is released
+                    if (pointerId == joystickPointerId) {
+                        joystickPointerId = -1;
+                        joystick.setTouched(false);
+                        joystick.reset();
+                    }
+                    // Reset jump button when its pointer is released
+                    else if (pointerId == jumpButtonPointerId) {
+                        jumpButtonPointerId = -1;
+                        isJumpButtonPressed = false;
+                    }
+                    // Reset pick-up/drop button when its pointer is released
+                    else if (pointerId == pickUpButtonPointerId) {
+                        pickUpButtonPointerId = -1;
+                        isPickUpButtonPressed = false;
+                        wasPickUpButtonPressed = false;
+                    }
+                    break;
             }
         }
-
-        // Handle pick-up or drop logic (trigger only once per press)
-        if (isPickUpButtonPressed && !wasPickUpButtonPressed) {
-            handlePickUpOrDrop(); // Execute the logic
-        }
-
-        // Update the button press state
-        wasPickUpButtonPressed = isPickUpButtonPressed;
 
         // Handle jumping
         if (isJumpButtonPressed && player.isOnPlatform()) {
