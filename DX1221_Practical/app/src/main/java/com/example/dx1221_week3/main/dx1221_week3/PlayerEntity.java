@@ -156,4 +156,9 @@ public class PlayerEntity extends GameEntity {
     public float getPositionY() {
         return _position.y;
     }
+
+    public boolean isOnPlatform() {
+        return isOnPlatform;
+    }
+
 }

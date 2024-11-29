@@ -23,10 +23,9 @@ public class Joystick {
         this.hatRadius = hatRadius;
         this.joystickX = centerX;
         this.joystickY = centerY;
-
-
-
+        this.isSticky = isSticky;
     }
+
 
     public void draw(Canvas canvas, Paint basePaint, Paint hatPaint) {
         canvas.drawCircle(centerX, centerY, baseRadius, basePaint);
@@ -58,6 +57,7 @@ public class Joystick {
             lastHorizontalPercentage = 0f;
             lastVerticalPercentage = 0f;
         }
+        isTouched = false; // Ensure touch state is cleared
     }
 
 

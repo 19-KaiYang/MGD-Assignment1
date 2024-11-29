@@ -86,44 +86,44 @@ public class MainGameScene extends GameScene {
                     joystick.update(touchX, touchY);
                 }
             } else if (action == MotionEvent.ACTION_UP) {
-                // Reset only the jump button
-                isJumpButtonPressed = false;
-
-                // Do not reset the joystick if sticky mode is enabled
-                if (!joystick.isSticky()) {
-                    joystick.reset();
+                // Reset jump button
+                if (Math.hypot(touchX - jumpButtonX, touchY - jumpButtonY) <= jumpButtonRadius) {
+                    isJumpButtonPressed = false;
+                }
+                // Handle joystick release
+                if (joystick.isTouched()) {
+                    joystick.setTouched(false); // Ensure touch state is cleared
+                    joystick.reset();           // Reset joystick position
                 }
             }
         }
 
-        // Trigger jump if the button is pressed
-        if (isJumpButtonPressed) {
+        // Handle jumping
+        if (isJumpButtonPressed && player.isOnPlatform()) {
             player.jump();
+            isJumpButtonPressed = false; // Reset jump button
         }
 
-        // Update player position based on joystick input
-        if (joystick.isTouched() || joystick.isSticky()) { // Check for sticky mode
-            float deltaX = joystick.getHorizontalPercentage() * 300 * dt; // Adjust speed as necessary
+        // Handle joystick movement
+        if (joystick.isTouched() || joystick.isSticky()) {
+            float deltaX = joystick.getHorizontalPercentage() * 300 * dt; // Adjust speed
             player.setPositionX(player.getPositionX() + deltaX);
         }
 
-        // Update camera to follow the player horizontally
+        // Update camera and other game logic
         float playerX = player.getPositionX();
         cameraX = playerX - screenWidth / 2f;
-
-        // Clamp camera position to the world bounds
         cameraX = Math.max(0, Math.min(cameraX, totalWorldWidth - screenWidth));
 
-        // Update all entities
         for (GameEntity entity : _gameEntities) {
             entity.onUpdate(dt);
         }
 
-        // Update platforms
         for (Platform platform : platforms) {
             platform.onUpdate(dt);
         }
     }
+
 
     @Override
     public void onRender(Canvas canvas) {
