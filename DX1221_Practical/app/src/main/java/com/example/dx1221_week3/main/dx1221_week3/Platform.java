@@ -2,6 +2,7 @@ package com.example.dx1221_week3.main.dx1221_week3;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Color;
 
 import mgp2d.core.GameEntity;
 
@@ -32,12 +33,22 @@ public class Platform extends GameEntity {
     }
 
     @Override
-    public void onUpdate(float dt) {}
+    public void onUpdate(float dt) {
+
+    }
 
     @Override
     public void onRender(Canvas canvas) {
-        Paint paint = new Paint();
-        paint.setColor(0xFF00FF00);
-        canvas.drawRect(_position.x, _position.y, _position.x + width, _position.y + height, paint);
+        // Draw the platform itself
+        Paint platformPaint = new Paint();
+        platformPaint.setColor(Color.GREEN); // Green color for the platform
+        canvas.drawRect(_position.x, _position.y, _position.x + width, _position.y + height, platformPaint);
+
+        // Draw bounding box for collision debugging
+        Paint boundingBoxPaint = new Paint();
+        boundingBoxPaint.setColor(Color.RED); // Red color for collision box
+        boundingBoxPaint.setStyle(Paint.Style.STROKE); // Outline only
+        canvas.drawRect(_position.x, _position.y, _position.x + width, _position.y + height, boundingBoxPaint);
     }
+
 }

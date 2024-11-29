@@ -20,6 +20,8 @@ import mgp2d.core.GameScene;
 public class MainGameScene extends GameScene {
 
     private List<GameEntity> _gameEntities = new ArrayList<>();
+
+    private final List<TrashBin> trashBins = new ArrayList<>();
     private Bitmap _backgroundBitmap0;
     private Bitmap _backgroundBitmap1;
     private float cameraX = 0; // Horizontal camera offset
@@ -33,6 +35,16 @@ public class MainGameScene extends GameScene {
 
     private boolean isJumpButtonPressed = false;
     private float jumpButtonX, jumpButtonY, jumpButtonRadius;
+
+    //Pick Up
+    private float pickUpButtonX, pickUpButtonY, pickUpButtonRadius;
+    private boolean isPickUpButtonPressed = false; // Tracks the previous state of the button
+    private boolean wasPickUpButtonPressed = false;
+
+
+    //Inventory
+    private TrashBin inventoryItem = null;
+
 
     @Override
     public void onCreate() {
@@ -53,17 +65,27 @@ public class MainGameScene extends GameScene {
         player = new PlayerEntity();
         _gameEntities.add(player);
 
+        // Initialize TrashBin
+        trashBins.add(new TrashBin(screenWidth / 2f, screenHeight - 420, R.drawable.trashbin, 100, 150)); // Width: 100, Height: 150
+
+
         // Initialize joystick with stickiness
         joystick = new Joystick(screenWidth / 8f, screenHeight * 4f / 5.5f, 150, 75, true); // The `true` enables sticky mode
 
         // Add platforms
-        //platforms.add(new Platform(0, screenHeight - 200, screenWidth, 100));
+        platforms.add(new Platform(0, screenHeight - 200, screenWidth, 100));
         platforms.add(new Platform(screenWidth / 2f, screenHeight - 400, 300, 40)); // Floating platform
 
         // Initialize jump button
         jumpButtonRadius = 100;
         jumpButtonX = screenWidth - jumpButtonRadius - 150; // Right corner of the screen
         jumpButtonY = screenHeight - jumpButtonRadius - 130;
+
+
+        // Define the position and size of the pick-up button
+        pickUpButtonRadius = 100;
+        pickUpButtonX = screenWidth - pickUpButtonRadius - 500; // Adjust X position
+        pickUpButtonY = screenHeight - pickUpButtonRadius - 130; //
     }
 
     @Override
@@ -80,6 +102,11 @@ public class MainGameScene extends GameScene {
                     isJumpButtonPressed = true;
                 }
 
+                // Handle pick-up/drop button
+                if (Math.hypot(touchX - pickUpButtonX, touchY - pickUpButtonY) <= pickUpButtonRadius) {
+                    isPickUpButtonPressed = true;
+                }
+
                 // Handle joystick
                 if (Math.hypot(touchX - joystick.getCenterX(), touchY - joystick.getCenterY()) <= joystick.getBaseRadius()) {
                     joystick.setTouched(true);
@@ -90,6 +117,12 @@ public class MainGameScene extends GameScene {
                 if (Math.hypot(touchX - jumpButtonX, touchY - jumpButtonY) <= jumpButtonRadius) {
                     isJumpButtonPressed = false;
                 }
+
+                // Reset pick-up/drop button
+                if (Math.hypot(touchX - pickUpButtonX, touchY - pickUpButtonY) <= pickUpButtonRadius) {
+                    isPickUpButtonPressed = false;
+                }
+
                 // Handle joystick release
                 if (joystick.isTouched()) {
                     joystick.setTouched(false); // Ensure touch state is cleared
@@ -97,6 +130,14 @@ public class MainGameScene extends GameScene {
                 }
             }
         }
+
+        // Handle pick-up or drop logic (trigger only once per press)
+        if (isPickUpButtonPressed && !wasPickUpButtonPressed) {
+            handlePickUpOrDrop(); // Execute the logic
+        }
+
+        // Update the button press state
+        wasPickUpButtonPressed = isPickUpButtonPressed;
 
         // Handle jumping
         if (isJumpButtonPressed && player.isOnPlatform()) {
@@ -122,32 +163,37 @@ public class MainGameScene extends GameScene {
         for (Platform platform : platforms) {
             platform.onUpdate(dt);
         }
+
+        for (TrashBin trashBin : trashBins) {
+            trashBin.onUpdate(dt);
+        }
     }
 
 
     @Override
     public void onRender(Canvas canvas) {
-        // Translate canvas to reflect camera position
+        // Render background and game objects
         canvas.save();
         canvas.translate(-cameraX, 0);
 
-        // Render background
         canvas.drawBitmap(_backgroundBitmap0, 0, 0, null);
         canvas.drawBitmap(_backgroundBitmap1, _backgroundBitmap0.getWidth(), 0, null);
 
-        // Render platforms
         for (Platform platform : platforms) {
             platform.onRender(canvas);
         }
 
-        // Render all entities (e.g., player)
         for (GameEntity entity : _gameEntities) {
             entity.onRender(canvas);
         }
 
+        for (TrashBin trashBin : trashBins) {
+            trashBin.onRender(canvas);
+        }
+
         canvas.restore();
 
-        // Render joystick (fixed to screen position)
+        // Render joystick
         Paint basePaint = new Paint();
         basePaint.setColor(Color.GRAY);
         basePaint.setStyle(Paint.Style.FILL);
@@ -163,14 +209,60 @@ public class MainGameScene extends GameScene {
         jumpButtonPaint.setColor(Color.RED);
         jumpButtonPaint.setStyle(Paint.Style.FILL);
         canvas.drawCircle(jumpButtonX, jumpButtonY, jumpButtonRadius, jumpButtonPaint);
+
+        // Render pick-up/drop button
+        Paint pickUpButtonPaint = new Paint();
+        if (inventoryItem == null) {
+            pickUpButtonPaint.setColor(Color.GREEN); // Green for pick-up
+        } else {
+            pickUpButtonPaint.setColor(Color.RED); // Red for drop
+        }
+        pickUpButtonPaint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(pickUpButtonX, pickUpButtonY, pickUpButtonRadius, pickUpButtonPaint);
+    }
+
+
+    public List<Platform> getPlatforms() {
+        return platforms;
     }
 
     public Joystick getJoystick() {
         return joystick;
     }
 
-    public List<Platform> getPlatforms() {
-        return platforms;
+    private void handlePickUpOrDrop() {
+        if (inventoryItem == null) {
+            // Inventory is empty: Pick up a trash bin
+            for (TrashBin trashBin : trashBins) {
+                if (!trashBin.isPickedUp() && checkCollision(player, trashBin)) {
+                    trashBin.pickUp(); // Mark as picked up
+                    inventoryItem = trashBin; // Store in inventory
+                    break; // Only pick up one trash bin
+                }
+            }
+        } else {
+            // Inventory is full: Drop the current item
+            inventoryItem.drop(player.getPositionX(), player.getPositionY() + 100); // Drop near the player
+            inventoryItem = null; // Clear the inventory
+        }
     }
+
+
+
+    private boolean checkCollision(PlayerEntity player, TrashBin trashBin) {
+        float playerLeft = player.getPositionX();
+        float playerRight = player.getPositionX() + player.getWidth();
+        float playerTop = player.getPositionY();
+        float playerBottom = player.getPositionY() + player.getHeight();
+
+        float trashBinLeft = trashBin.getX();
+        float trashBinRight = trashBin.getX() + trashBin.getWidth();
+        float trashBinTop = trashBin.getY();
+        float trashBinBottom = trashBin.getY() + trashBin.getHeight();
+
+        return playerRight > trashBinLeft && playerLeft < trashBinRight &&
+                playerBottom > trashBinTop && playerTop < trashBinBottom;
+    }
+
 
 }

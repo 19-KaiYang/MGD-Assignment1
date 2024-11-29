@@ -18,11 +18,11 @@ public class PlayerEntity extends GameEntity {
     private final AnimatedSprite _animatedSprite;
     private float velocityY = 0;  // Vertical velocity
     private final float gravity = 500; // Gravity (pixels per second squared)
-    private final float jumpVelocity = -800; // Jump velocity
+    private final float jumpVelocity = -500; // Jump velocity
     private boolean isOnPlatform = false;
 
     private float collisionOffsetX = -3; //  (left/right)
-    private float collisionOffsetY = 5;  //  (top/bottom)
+    private float collisionOffsetY = 10;  //  (top/bottom)
 
 
     public PlayerEntity() {
@@ -50,32 +50,27 @@ public class PlayerEntity extends GameEntity {
             _position.x += deltaX;
         }
 
-        // Apply gravity if not on a platform
+        // Apply gravity
         if (!isOnPlatform) {
-            velocityY += gravity * dt; // Apply gravity
-            _position.y += velocityY * dt; // Move player down
-        } else {
-            velocityY = 0; // Reset vertical velocity when on a platform
+            velocityY += gravity * dt; // Accelerate downward
         }
+        _position.y += velocityY * dt; // Update vertical position
 
         // Reset platform state
         isOnPlatform = false;
 
+        // Platform collision detection
         for (Platform platform : ((MainGameScene) GameScene.getCurrent()).getPlatforms()) {
             if (checkCollisionWithPlatform(platform)) {
-                float tolerance = 1.0f; // Small buffer to prevent snapping
-                if (velocityY > 0 && Math.abs(_position.y - (platform.getY() - getHeight())) > tolerance) {
-                    _position.y = platform.getY() - getHeight(); // Snap to top of platform
-                    velocityY = 0; // Stop vertical velocity
-                    isOnPlatform = true; // Mark as standing on platform
-                } else if (velocityY == 0) {
-                    // Stabilize the player on the platform
-                    _position.y = platform.getY() - getHeight();
+                // If falling down onto a platform, stop at the top
+                if (velocityY > 0 && (_position.y + getHeight()) >= platform.getY()) {
+                    _position.y = platform.getY() - getHeight(); // Precisely align player's bottom to platform top
+                    velocityY = 0; // Stop vertical motion
                     isOnPlatform = true;
+                    break;
                 }
             }
         }
-
 
         // Prevent falling below the ground
         int screenHeight = GameActivity.instance.getResources().getDisplayMetrics().heightPixels;
@@ -90,6 +85,7 @@ public class PlayerEntity extends GameEntity {
         // Update animation frames
         _animatedSprite.update(dt);
     }
+
 
 
     @Override
@@ -124,11 +120,11 @@ public class PlayerEntity extends GameEntity {
     }
 
     private boolean checkCollisionWithPlatform(Platform platform) {
-        float tolerance = 10.0f;
+        float tolerance = 70.0f; // Tolerance value
         float playerLeft = _position.x - (_animatedSprite.getWidth() / 1.8f);
-        float playerRight = _position.x + (_animatedSprite.getWidth() /1.8f);
-        float playerTop = _position.y - (_animatedSprite.getHeight() /1.8f);
-        float playerBottom = _position.y + (_animatedSprite.getHeight() / 1.8f);
+        float playerRight = _position.x + (_animatedSprite.getWidth() / 1.8f);
+        float playerTop = _position.y - (_animatedSprite.getHeight() / 1.8f);
+        float playerBottom = _position.y + (_animatedSprite.getHeight() / 2.2f);
 
         return playerBottom + tolerance >= platform.getY()
                 && playerTop <= platform.getY() + platform.getHeight()
@@ -136,12 +132,12 @@ public class PlayerEntity extends GameEntity {
                 && playerLeft < platform.getX() + platform.getWidth();
     }
 
-    private float getHeight() {
-        return _animatedSprite.getHeight();
+    public float getWidth() {
+        return _animatedSprite.getWidth();
     }
 
-    private float getWidth() {
-        return _animatedSprite.getWidth();
+    public float getHeight() {
+        return _animatedSprite.getHeight();
     }
 
     public void setPositionX(float x) {
