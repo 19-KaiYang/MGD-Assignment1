@@ -106,6 +106,8 @@ public class MainGameScene extends GameScene {
 
 
          // Initialize Items (Recyclable and Non-Recyclable)
+        // ADD ITEMS HERE
+        // ALL RECYCLABLE AND NON RECYCLABLE
         Bitmap recyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.bottle);
         Bitmap nonRecyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.trashbag);
 
@@ -157,29 +159,20 @@ public class MainGameScene extends GameScene {
 
                         if (movePointerId == joystickPointerId) {
                             joystick.update(moveTouchX, moveTouchY);
-                        } else if (movePointerId == jumpButtonPointerId) {
-                            isJumpButtonPressed = true; // Ensure jump button stays active
-                        } else if (movePointerId == pickUpButtonPointerId) {
-                            // Optional: Handle pick-up/drop move logic if needed
                         }
                     }
                     break;
 
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_POINTER_UP:
-                    // Reset joystick when its pointer is released
                     if (pointerId == joystickPointerId) {
                         joystickPointerId = -1;
                         joystick.setTouched(false);
                         joystick.reset();
-                    }
-                    // Reset jump button when its pointer is released
-                    else if (pointerId == jumpButtonPointerId) {
+                    } else if (pointerId == jumpButtonPointerId) {
                         jumpButtonPointerId = -1;
                         isJumpButtonPressed = false;
-                    }
-                    // Reset pick-up/drop button when its pointer is released
-                    else if (pointerId == pickUpButtonPointerId) {
+                    } else if (pointerId == pickUpButtonPointerId) {
                         pickUpButtonPointerId = -1;
                         isPickUpButtonPressed = false;
                         wasPickUpButtonPressed = false;
@@ -188,19 +181,21 @@ public class MainGameScene extends GameScene {
             }
         }
 
-        // Handle jumping
-        if (isJumpButtonPressed && player.isOnPlatform()) {
-            player.jump();
-            isJumpButtonPressed = false; // Reset jump button
+        // Calculate speed factor based on inventory weight
+        float speedFactor = 1.0f;
+        if (inventoryItem != null) {
+            float maxWeight = 100.0f; // Adjust this value for max impact
+            speedFactor = Math.max(0.5f, 1.0f - (inventoryItem.getWeight() / maxWeight));
         }
 
-        // Handle joystick movement
+        // Handle joystick movement with weight-adjusted speed
         if (joystick.isTouched() || joystick.isSticky()) {
-            float deltaX = joystick.getHorizontalPercentage() * 300 * dt; // Adjust speed
+            float adjustedSpeed = 300 * speedFactor; // Adjust base speed with weight factor
+            float deltaX = joystick.getHorizontalPercentage() * adjustedSpeed * dt;
             player.setPositionX(player.getPositionX() + deltaX);
         }
 
-        // Update camera and other game logic
+        // Update other game logic
         float playerX = player.getPositionX();
         cameraX = playerX - screenWidth / 2f;
         cameraX = Math.max(0, Math.min(cameraX, totalWorldWidth - screenWidth));
@@ -217,11 +212,11 @@ public class MainGameScene extends GameScene {
             trashBin.onUpdate(dt);
         }
 
-        // Update items
         for (Item item : items) {
             item.onUpdate(dt);
         }
     }
+
 
 
     @Override

@@ -21,8 +21,20 @@ public class PlayerEntity extends GameEntity {
     private final float jumpVelocity = -500; // Jump velocity
     private boolean isOnPlatform = false;
 
-    private float collisionOffsetX = -3; //  (left/right)
-    private float collisionOffsetY = 10;  //  (top/bottom)
+    //private float collisionOffsetX = -3; //  (left/right)
+    //private float collisionOffsetY = 10;  //  (top/bottom)
+
+    private float baseSpeed = 300f; // Base movement speed
+    private float currentSpeed = baseSpeed; // Adjusted speed based on weight
+
+    public void updateSpeedBasedOnWeight(float weight) {
+        // Reduce speed by 1% for every 1kg of weight (example logic)
+        currentSpeed = baseSpeed * Math.max(0.5f, 1.0f - (weight / 10.0f));
+    }
+
+    public float getCurrentSpeed() {
+        return currentSpeed;
+    }
 
 
     public PlayerEntity() {
