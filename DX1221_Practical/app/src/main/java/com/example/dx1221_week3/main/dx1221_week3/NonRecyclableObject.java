@@ -14,8 +14,8 @@ public class NonRecyclableObject extends Item {
     private final float gravity = 500; // Gravity (pixels per second squared)
     private boolean isOnPlatform = false; // Tracks if the object is on a platform
 
-    public NonRecyclableObject(float x, float y, Bitmap image, float desiredWidth, float desiredHeight) {
-        super(x, y, Bitmap.createScaledBitmap(image, (int) desiredWidth, (int) desiredHeight, true));
+    public NonRecyclableObject(float x, float y, Bitmap image, float desiredWidth, float desiredHeight, float weight) {
+        super(x, y, Bitmap.createScaledBitmap(image, (int) desiredWidth, (int) desiredHeight, true), weight);
         this.width = desiredWidth;
         this.height = desiredHeight;
     }

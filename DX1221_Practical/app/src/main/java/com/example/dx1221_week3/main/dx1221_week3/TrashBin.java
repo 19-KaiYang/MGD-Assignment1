@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Color;
 
 import mgp2d.core.GameActivity;
 import mgp2d.core.GameEntity;
@@ -15,8 +16,11 @@ public class TrashBin extends Item {
     private final float gravity = 500; // Gravity (pixels per second squared)
     private boolean isOnPlatform = false; // Tracks if the trash bin is on a platform
 
-    public TrashBin(float x, float y, int resId, float desiredWidth, float desiredHeight) {
-        super(x, y, BitmapFactory.decodeResource(GameActivity.instance.getResources(), resId)); // Call Item constructor
+    private float currentWeight = 0; // Tracks the total weight of items in the trash bin
+
+
+    public TrashBin(float x, float y, int resId, float desiredWidth, float desiredHeight, float weight) {
+        super(x, y, BitmapFactory.decodeResource(GameActivity.instance.getResources(), resId), weight);
         this.width = desiredWidth;
         this.height = desiredHeight;
 
@@ -24,12 +28,6 @@ public class TrashBin extends Item {
         itemImage = Bitmap.createScaledBitmap(itemImage, (int) desiredWidth, (int) desiredHeight, true);
     }
 
-    public void jump() {
-        if (isOnPlatform) {
-            velocityY = -500; // Set upward velocity for the jump
-            isOnPlatform = false; // The trash bin leaves the platform
-        }
-    }
 
     @Override
     public void onUpdate(float dt) {
@@ -74,13 +72,14 @@ public class TrashBin extends Item {
             // Draw the trash bin image
             canvas.drawBitmap(itemImage, _position.x, _position.y, null);
 
-            // Optional: Draw debug box for collision testing
-            Paint debugPaint = new Paint();
-            debugPaint.setColor(0xFFFF0000); // Red color for the bounding box
-            debugPaint.setStyle(Paint.Style.STROKE);
-            canvas.drawRect(_position.x, _position.y, _position.x + width, _position.y + height, debugPaint);
+            // Draw the weight text above the trash bin
+            Paint textPaint = new Paint();
+            textPaint.setColor(Color.WHITE);
+            textPaint.setTextSize(30);
+            canvas.drawText(currentWeight + " kg", _position.x, _position.y - 10, textPaint); // Display weight
         }
     }
+
 
     private boolean checkCollisionWithPlatform(Platform platform) {
         float tolerance = 5.0f; // Small buffer to prevent floating
@@ -103,6 +102,28 @@ public class TrashBin extends Item {
     public boolean isOnPlatform() {
         return isOnPlatform;
     }
+
+    public void addItem(Item item) {
+        currentWeight += item.getWeight(); // Add item's weight to the trash bin
+        item.setTrashed(true); // Mark the item as trashed
+    }
+
+    public float getCurrentWeight() {
+        return currentWeight;
+    }
+
+    @Override
+    public void pickUp() {
+        isPickedUp = true; // Mark the trash bin as picked up
+    }
+
+    @Override
+    public void drop(float x, float y) {
+        _position.x = x;
+        _position.y = y;
+        isPickedUp = false; // Mark the trash bin as dropped
+    }
+
 
 
 }

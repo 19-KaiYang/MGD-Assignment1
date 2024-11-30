@@ -14,12 +14,14 @@ public abstract class Item extends GameEntity {
     protected float width, height; // Item's dimensions
     protected boolean isPickedUp = false; // Pick-up state
 
-    public abstract void onRender(Canvas canvas);
+    protected boolean isTrashed = false;
+    protected float weight;
 
-    public Item(float x, float y, Bitmap image) {
+    public Item(float x, float y, Bitmap image, float weight) {
         _position.x = x;
         _position.y = y;
         this.itemImage = image;
+        this.weight = weight;
         this.width = image.getWidth();
         this.height = image.getHeight();
     }
@@ -55,9 +57,41 @@ public abstract class Item extends GameEntity {
         return height;
     }
 
+    public float getWeight() {
+        return weight;
+    }
+
+    public void setWeight(float weight) {
+        this.weight = weight;
+    }
+    public void setTrashed(boolean trashed) {
+        isPickedUp = trashed; // Use this field to indicate the item is trashed
+    }
+
+
     public Bitmap getIcon() {
         return itemImage; // Return the item's image as its icon
     }
+
+    @Override
+    public void onRender(Canvas canvas) {
+        if (!isPickedUp && !isTrashed()) {
+            canvas.drawBitmap(itemImage, _position.x, _position.y, null);
+
+            // Optional: Draw the weight text above the item
+            Paint textPaint = new Paint();
+            textPaint.setColor(Color.WHITE);
+            textPaint.setTextSize(30);
+            canvas.drawText(weight + " kg", _position.x, _position.y - 10, textPaint);
+        }
+    }
+
+    public boolean isTrashed() {
+        return isPickedUp && isTrashed; // Logic to determine if the item is trashed
+    }
+
+
+
 
 
 

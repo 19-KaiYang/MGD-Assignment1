@@ -82,7 +82,8 @@ public class MainGameScene extends GameScene {
         _gameEntities.add(player);
 
         // Initialize TrashBin
-        trashBins.add(new TrashBin(screenWidth / 2f, screenHeight - 420, R.drawable.trashbin, 100, 150)); // Width: 100, Height: 150
+        TrashBin trashBin = new TrashBin(500, screenHeight - 300, R.drawable.trashbin, 100, 150, 10);
+        trashBins.add(trashBin);
 
 
         // Initialize joystick with stickiness
@@ -108,8 +109,9 @@ public class MainGameScene extends GameScene {
         Bitmap recyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.bottle);
         Bitmap nonRecyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.trashbag);
 
-        items.add(new RecyclableObject(1600, screenHeight - 500, recyclableImage, 100, 100)); // 100x100 size
-        items.add(new NonRecyclableObject(1000, screenHeight - 500, nonRecyclableImage, 120, 120)); // 100x100 size
+        items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 20)); // Weight = 20kg
+        items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 10)); // Weight = 10kg
+
     }
 
     @Override
@@ -306,7 +308,7 @@ public class MainGameScene extends GameScene {
 
     private void handlePickUpOrDrop() {
         if (inventoryItem == null) {
-            // Inventory is empty: Try to pick up an item first
+            // Inventory is empty: Try to pick up an item
             for (Item item : items) {
                 if (!item.isPickedUp() && checkCollision(player, item)) {
                     item.pickUp(); // Mark as picked up
@@ -316,7 +318,7 @@ public class MainGameScene extends GameScene {
                 }
             }
 
-            // If no items were picked up, try to pick up a trash bin
+            // Try to pick up a trash bin
             for (TrashBin trashBin : trashBins) {
                 if (!trashBin.isPickedUp() && checkCollision(player, trashBin)) {
                     trashBin.pickUp(); // Mark as picked up
@@ -326,12 +328,27 @@ public class MainGameScene extends GameScene {
                 }
             }
         } else {
-            // Inventory is full: Drop the current item (trash bin or item)
+            // Inventory is full: Handle dropping the inventory item
+            // Check if the player is in range of a trash bin
+            for (TrashBin trashBin : trashBins) {
+                if (checkCollision(player, trashBin)) {
+                    if (inventoryItem instanceof RecyclableObject || inventoryItem instanceof NonRecyclableObject) {
+                        trashBin.addItem(inventoryItem); // Add the item to the trash bin
+                        inventoryItem = null; // Clear the inventory
+                        inventoryIcon = null; // Clear the inventory icon
+                        return; // Exit after dropping the item into the trash bin
+                    }
+                }
+            }
+
+            // Drop the inventory item near the player if not in range of a trash bin
             inventoryItem.drop(player.getPositionX(), player.getPositionY() + 100); // Drop near the player
             inventoryItem = null; // Clear the inventory
-            inventoryIcon = null; // Clear inventory icon
+            inventoryIcon = null; // Clear the inventory icon
         }
     }
+
+
 
 
 
