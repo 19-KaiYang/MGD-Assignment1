@@ -22,6 +22,8 @@ public class MainGameScene extends GameScene {
     private List<GameEntity> _gameEntities = new ArrayList<>();
 
     private final List<TrashBin> trashBins = new ArrayList<>();
+
+    private final List<Item> items = new ArrayList<>();
     private Bitmap _backgroundBitmap0;
     private Bitmap _backgroundBitmap1;
     private float cameraX = 0; // Horizontal camera offset
@@ -43,7 +45,8 @@ public class MainGameScene extends GameScene {
 
 
     //Inventory
-    private TrashBin inventoryItem = null;
+    private Item inventoryItem = null; // Can now store both TrashBin and Item objects
+
     private Bitmap inventoryIcon = null; // Current inventory item icon
     private final float inventoryX = 50; // X position for inventory UI
     private final float inventoryY = 50; // Y position for inventory UI
@@ -99,6 +102,14 @@ public class MainGameScene extends GameScene {
         pickUpButtonRadius = 100;
         pickUpButtonX = screenWidth - pickUpButtonRadius - 500; // Adjust X position
         pickUpButtonY = screenHeight - pickUpButtonRadius - 130; //
+
+
+         // Initialize Items (Recyclable and Non-Recyclable)
+        Bitmap recyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.bottle);
+        Bitmap nonRecyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.trashbag);
+
+        items.add(new RecyclableObject(1600, screenHeight - 500, recyclableImage, 100, 100)); // 100x100 size
+        items.add(new NonRecyclableObject(1000, screenHeight - 500, nonRecyclableImage, 120, 120)); // 100x100 size
     }
 
     @Override
@@ -203,6 +214,11 @@ public class MainGameScene extends GameScene {
         for (TrashBin trashBin : trashBins) {
             trashBin.onUpdate(dt);
         }
+
+        // Update items
+        for (Item item : items) {
+            item.onUpdate(dt);
+        }
     }
 
 
@@ -227,6 +243,12 @@ public class MainGameScene extends GameScene {
             trashBin.onRender(canvas);
         }
 
+        // Render items
+        for (Item item : items) {
+            item.onRender(canvas);
+        }
+
+
         canvas.restore();
 
         // Render joystick
@@ -239,6 +261,7 @@ public class MainGameScene extends GameScene {
         hatPaint.setStyle(Paint.Style.FILL);
 
         joystick.draw(canvas, basePaint, hatPaint);
+
 
         // Render jump button
         Paint jumpButtonPaint = new Paint();
@@ -266,6 +289,8 @@ public class MainGameScene extends GameScene {
             canvas.drawBitmap(inventoryIcon, null,
                     new android.graphics.RectF(inventoryX, inventoryY, inventoryX + inventoryWidth, inventoryY + inventoryHeight), null);
         }
+
+
     }
 
 
@@ -278,19 +303,30 @@ public class MainGameScene extends GameScene {
         return joystick;
     }
 
+
     private void handlePickUpOrDrop() {
         if (inventoryItem == null) {
-            // Inventory is empty: Pick up a trash bin
+            // Inventory is empty: Try to pick up an item first
+            for (Item item : items) {
+                if (!item.isPickedUp() && checkCollision(player, item)) {
+                    item.pickUp(); // Mark as picked up
+                    inventoryItem = item; // Store in inventory
+                    inventoryIcon = item.getIcon(); // Set inventory icon
+                    return; // Exit after picking up the item
+                }
+            }
+
+            // If no items were picked up, try to pick up a trash bin
             for (TrashBin trashBin : trashBins) {
                 if (!trashBin.isPickedUp() && checkCollision(player, trashBin)) {
                     trashBin.pickUp(); // Mark as picked up
                     inventoryItem = trashBin; // Store in inventory
                     inventoryIcon = trashBin.getIcon(); // Set inventory icon
-                    break; // Only pick up one trash bin
+                    return; // Exit after picking up the trash bin
                 }
             }
         } else {
-            // Inventory is full: Drop the current item
+            // Inventory is full: Drop the current item (trash bin or item)
             inventoryItem.drop(player.getPositionX(), player.getPositionY() + 100); // Drop near the player
             inventoryItem = null; // Clear the inventory
             inventoryIcon = null; // Clear inventory icon
@@ -299,19 +335,19 @@ public class MainGameScene extends GameScene {
 
 
 
-    private boolean checkCollision(PlayerEntity player, TrashBin trashBin) {
+    private boolean checkCollision(PlayerEntity player, Item item) {
         float playerLeft = player.getPositionX();
         float playerRight = player.getPositionX() + player.getWidth();
         float playerTop = player.getPositionY();
         float playerBottom = player.getPositionY() + player.getHeight();
 
-        float trashBinLeft = trashBin.getX();
-        float trashBinRight = trashBin.getX() + trashBin.getWidth();
-        float trashBinTop = trashBin.getY();
-        float trashBinBottom = trashBin.getY() + trashBin.getHeight();
+        float itemLeft = item.getX();
+        float itemRight = item.getX() + item.getWidth();
+        float itemTop = item.getY();
+        float itemBottom = item.getY() + item.getHeight();
 
-        return playerRight > trashBinLeft && playerLeft < trashBinRight &&
-                playerBottom > trashBinTop && playerTop < trashBinBottom;
+        return playerRight > itemLeft && playerLeft < itemRight &&
+                playerBottom > itemTop && playerTop < itemBottom;
     }
 
 
