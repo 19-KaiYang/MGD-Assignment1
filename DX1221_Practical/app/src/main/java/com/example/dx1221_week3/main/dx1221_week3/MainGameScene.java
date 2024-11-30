@@ -23,6 +23,8 @@ public class MainGameScene extends GameScene {
 
     private final List<TrashBin> trashBins = new ArrayList<>();
 
+
+
     private final List<Item> items = new ArrayList<>();
     private Bitmap _backgroundBitmap0;
     private Bitmap _backgroundBitmap1;
@@ -60,6 +62,10 @@ public class MainGameScene extends GameScene {
     private int pickUpButtonPointerId = -1; // Pointer ID for pick-up/drop button
 
 
+    //Lives
+    private int lives = 3;
+
+
 
 
     @Override
@@ -84,6 +90,10 @@ public class MainGameScene extends GameScene {
         // Initialize TrashBin
         TrashBin trashBin = new TrashBin(500, screenHeight - 300, R.drawable.trashbin, 100, 150, 10);
         trashBins.add(trashBin);
+
+        //Initialize RecyclingBin
+        RecyclingBin recyclingBin = new RecyclingBin(1600, screenHeight - 300, R.drawable.recyclingbin, 100, 150, 10);
+        trashBins.add(recyclingBin);
 
 
         // Initialize joystick with stickiness
@@ -188,6 +198,14 @@ public class MainGameScene extends GameScene {
             speedFactor = Math.max(0.5f, 1.0f - (inventoryItem.getWeight() / maxWeight));
         }
 
+
+        // Handle jumping
+        if (isJumpButtonPressed && player.isOnPlatform()) {
+            player.jump();
+            isJumpButtonPressed = false; // Reset jump button
+        }
+
+
         // Handle joystick movement with weight-adjusted speed
         if (joystick.isTouched() || joystick.isSticky()) {
             float adjustedSpeed = 300 * speedFactor; // Adjust base speed with weight factor
@@ -228,6 +246,21 @@ public class MainGameScene extends GameScene {
         canvas.drawBitmap(_backgroundBitmap0, 0, 0, null);
         canvas.drawBitmap(_backgroundBitmap1, _backgroundBitmap0.getWidth(), 0, null);
 
+
+        // Position lives relative to the camera
+        float livesX = cameraX + 50; // Offset from the left of the screen
+        float livesY = 100; // Offset from the top of the screen
+
+        // Render lives remaining
+        Paint livesPaint = new Paint();
+        livesPaint.setColor(Color.RED);
+        livesPaint.setTextSize(80);
+        canvas.drawText("Lives: " + lives, livesX, livesY, livesPaint);
+
+
+
+
+
         for (Platform platform : platforms) {
             platform.onRender(canvas);
         }
@@ -244,7 +277,6 @@ public class MainGameScene extends GameScene {
         for (Item item : items) {
             item.onRender(canvas);
         }
-
 
         canvas.restore();
 
@@ -276,6 +308,10 @@ public class MainGameScene extends GameScene {
         pickUpButtonPaint.setStyle(Paint.Style.FILL);
         canvas.drawCircle(pickUpButtonX, pickUpButtonY, pickUpButtonRadius, pickUpButtonPaint);
 
+        // Calculate top center position for inventory
+        float inventoryX = (screenWidth - inventoryWidth) / 2f; // Center horizontally
+        float inventoryY = 20; // Distance from the top of the screen
+
         // Render inventory UI
         Paint inventoryPaint = new Paint();
         inventoryPaint.setColor(Color.DKGRAY); // Background for inventory slot
@@ -286,6 +322,7 @@ public class MainGameScene extends GameScene {
             canvas.drawBitmap(inventoryIcon, null,
                     new android.graphics.RectF(inventoryX, inventoryY, inventoryX + inventoryWidth, inventoryY + inventoryHeight), null);
         }
+
 
 
     }
@@ -344,9 +381,6 @@ public class MainGameScene extends GameScene {
     }
 
 
-
-
-
     private boolean checkCollision(PlayerEntity player, Item item) {
         float playerLeft = player.getPositionX();
         float playerRight = player.getPositionX() + player.getWidth();
@@ -360,6 +394,21 @@ public class MainGameScene extends GameScene {
 
         return playerRight > itemLeft && playerLeft < itemRight &&
                 playerBottom > itemTop && playerTop < itemBottom;
+    }
+
+
+    public void loseLife() {
+        lives--;
+        System.out.println("Lives remaining: " + lives);
+        if (lives <= 0) {
+            endGame();
+        }
+    }
+
+    private void endGame()
+    {
+       //End Game Logic Here
+
     }
 
 

@@ -10,22 +10,15 @@ import mgp2d.core.GameActivity;
 import mgp2d.core.GameEntity;
 import mgp2d.core.GameScene;
 
+public class RecyclingBin extends TrashBin {
 
-public class TrashBin extends Item {
     private float velocityY = 0;  // Vertical velocity
     private final float gravity = 500; // Gravity (pixels per second squared)
     private boolean isOnPlatform = false; // Tracks if the trash bin is on a platform
+    private float currentWeight = 0;
 
-    private float currentWeight = 0; // Tracks the total weight of items in the trash bin
-
-
-    public TrashBin(float x, float y, int resId, float desiredWidth, float desiredHeight, float weight) {
-        super(x, y, BitmapFactory.decodeResource(GameActivity.instance.getResources(), resId), weight);
-        this.width = desiredWidth;
-        this.height = desiredHeight;
-
-        // Scale the image to the desired size
-        itemImage = Bitmap.createScaledBitmap(itemImage, (int) desiredWidth, (int) desiredHeight, true);
+    public RecyclingBin(float x, float y, int resId, float desiredWidth, float desiredHeight, float weight) {
+        super(x, y, resId, desiredWidth, desiredHeight, weight); // Pass the int resource ID
     }
 
 
@@ -105,7 +98,7 @@ public class TrashBin extends Item {
 
     public void addItem(Item item) {
         currentWeight += item.getWeight(); // Add item's weight regardless of correctness
-        if (!(item instanceof NonRecyclableObject)) {
+        if (!(item instanceof RecyclableObject)) {
             // Wrong item placed in recycling bin
             ((MainGameScene) GameScene.getCurrent()).loseLife();
         }
@@ -129,7 +122,6 @@ public class TrashBin extends Item {
         _position.y = y;
         isPickedUp = false; // Mark the trash bin as dropped
     }
-
 
 
 }
