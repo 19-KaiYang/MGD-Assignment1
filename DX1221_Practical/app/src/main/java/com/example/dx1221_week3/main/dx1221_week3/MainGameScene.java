@@ -35,6 +35,8 @@ public class MainGameScene extends GameScene {
     private Joystick joystick;
     private final List<Platform> platforms = new ArrayList<>();
 
+    private final List<PressurePlate> pressurePlates = new ArrayList<>();
+
     //For Jumping
 
     private boolean isJumpButtonPressed = false;
@@ -69,6 +71,7 @@ public class MainGameScene extends GameScene {
 
 
     @Override
+    //On Start
     public void onCreate() {
         super.onCreate();
 
@@ -100,8 +103,10 @@ public class MainGameScene extends GameScene {
         joystick = new Joystick(screenWidth / 8f, screenHeight * 4f / 5.5f, 150, 75, true); // The `true` enables sticky mode
 
         // Add platforms
-        platforms.add(new Platform(0, screenHeight - 200, screenWidth, 100));
+        platforms.add(new Platform(0, screenHeight - 200, screenWidth * 3, 100));
         platforms.add(new Platform(screenWidth / 2f, screenHeight - 400, 300, 40)); // Floating platform
+
+        pressurePlates.add(new PressurePlate(screenWidth / 2f, screenHeight - 600, 50, 20, 20));
 
         // Initialize jump button
         jumpButtonRadius = 100;
@@ -123,7 +128,6 @@ public class MainGameScene extends GameScene {
 
         items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 20)); // Weight = 20kg
         items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 10)); // Weight = 10kg
-
     }
 
     @Override
@@ -258,9 +262,6 @@ public class MainGameScene extends GameScene {
         canvas.drawText("Lives: " + lives, livesX, livesY, livesPaint);
 
 
-
-
-
         for (Platform platform : platforms) {
             platform.onRender(canvas);
         }
@@ -276,6 +277,10 @@ public class MainGameScene extends GameScene {
         // Render items
         for (Item item : items) {
             item.onRender(canvas);
+        }
+
+        for (PressurePlate pressurePlate : pressurePlates) {
+            pressurePlate.onRender(canvas);
         }
 
         canvas.restore();
@@ -322,9 +327,6 @@ public class MainGameScene extends GameScene {
             canvas.drawBitmap(inventoryIcon, null,
                     new android.graphics.RectF(inventoryX, inventoryY, inventoryX + inventoryWidth, inventoryY + inventoryHeight), null);
         }
-
-
-
     }
 
 
@@ -410,6 +412,4 @@ public class MainGameScene extends GameScene {
        //End Game Logic Here
 
     }
-
-
 }

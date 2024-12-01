@@ -19,8 +19,6 @@ public class RecyclableObject extends Item {
         this.height = desiredHeight;
     }
 
-
-
     @Override
     public void onUpdate(float dt) {
         // Apply gravity if not on a platform

@@ -89,10 +89,4 @@ public abstract class Item extends GameEntity {
     public boolean isTrashed() {
         return isPickedUp && isTrashed; // Logic to determine if the item is trashed
     }
-
-
-
-
-
-
 }

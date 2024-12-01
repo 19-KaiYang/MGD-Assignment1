@@ -76,7 +76,7 @@ public class PlayerEntity extends GameEntity {
             if (checkCollisionWithPlatform(platform)) {
                 // If falling down onto a platform, stop at the top
                 if (velocityY > 0 && (_position.y + getHeight()) >= platform.getY()) {
-                    _position.y = platform.getY() - getHeight(); // Precisely align player's bottom to platform top
+                    _position.y = platform.getY() - 62f; // Precisely align player's bottom to platform top
                     velocityY = 0; // Stop vertical motion
                     isOnPlatform = true;
                     break;
@@ -93,6 +93,7 @@ public class PlayerEntity extends GameEntity {
             velocityY = 0; // Stop vertical movement
             isOnPlatform = true; // Player is now on the ground
         }
+
 
         // Update animation frames
         _animatedSprite.update(dt);
@@ -133,12 +134,12 @@ public class PlayerEntity extends GameEntity {
 
     private boolean checkCollisionWithPlatform(Platform platform) {
         float tolerance = 70.0f; // Tolerance value
-        float playerLeft = _position.x - (_animatedSprite.getWidth() / 1.8f);
-        float playerRight = _position.x + (_animatedSprite.getWidth() / 1.8f);
-        float playerTop = _position.y - (_animatedSprite.getHeight() / 1.8f);
-        float playerBottom = _position.y + (_animatedSprite.getHeight() / 2.2f);
+        float playerLeft = _position.x - (getWidth() / 1.8f);
+        float playerRight = _position.x + (getWidth() / 1.8f);
+        float playerTop = _position.y - (getHeight() / 1.8f);
+        float playerBottom = _position.y + (getHeight() / 2.2f);
 
-        return playerBottom + tolerance >= platform.getY()
+        return playerBottom + 5.0f >= platform.getY()
                 && playerTop <= platform.getY() + platform.getHeight()
                 && playerRight > platform.getX()
                 && playerLeft < platform.getX() + platform.getWidth();
