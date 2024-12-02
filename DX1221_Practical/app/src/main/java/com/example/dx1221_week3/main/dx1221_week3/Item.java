@@ -10,9 +10,9 @@ import mgp2d.core.GameScene;
 
 
 public abstract class Item extends GameEntity {
-    protected Bitmap itemImage; // Item's visual representation
-    protected float width, height; // Item's dimensions
-    protected boolean isPickedUp = false; // Pick-up state
+    protected Bitmap itemImage;
+    protected float width, height;
+    protected boolean isPickedUp = false;
 
     protected boolean isTrashed = false;
     protected float weight;
@@ -65,7 +65,7 @@ public abstract class Item extends GameEntity {
         this.weight = weight;
     }
     public void setTrashed(boolean trashed) {
-        isPickedUp = trashed; // Use this field to indicate the item is trashed
+        isPickedUp = trashed;
         isTrashed = trashed;
     }
 
@@ -79,7 +79,6 @@ public abstract class Item extends GameEntity {
         if (!isPickedUp && !isTrashed()) {
             canvas.drawBitmap(itemImage, _position.x, _position.y, null);
 
-            // Optional: Draw the weight text above the item
             Paint textPaint = new Paint();
             textPaint.setColor(Color.WHITE);
             textPaint.setTextSize(30);
@@ -88,6 +87,6 @@ public abstract class Item extends GameEntity {
     }
 
     public boolean isTrashed() {
-        return isPickedUp && isTrashed; // Logic to determine if the item is trashed
+        return isPickedUp && isTrashed;
     }
 }

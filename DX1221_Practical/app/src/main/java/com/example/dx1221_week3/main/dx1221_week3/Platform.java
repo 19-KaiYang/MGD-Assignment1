@@ -8,14 +8,14 @@ import mgp2d.core.GameEntity;
 
 public class Platform extends GameEntity {
     private final float width, height;
-    protected boolean isDisabled;  // New field to track if the platform is disabled
+    protected boolean isDisabled;
 
     public Platform(float x, float y, float width, float height, boolean isdisabled) {
         _position.x = x;
         _position.y = y;
         this.width = width;
         this.height = height;
-        this.isDisabled = isdisabled;  // Initially, the platform is not disabled
+        this.isDisabled = isdisabled;
     }
 
     public float getX() {
@@ -53,7 +53,7 @@ public class Platform extends GameEntity {
     public void onRender(Canvas canvas) {
         // If the platform is disabled, do not render it, or render in a different way
         if (isDisabled) {
-            return;  // If disabled, skip rendering
+            return;
         }
 
         // Otherwise, render the platform

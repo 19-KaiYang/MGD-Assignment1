@@ -16,18 +16,18 @@ import mgp2d.core.GameScene;
 public class PlayerEntity extends GameEntity {
 
     private final AnimatedSprite _animatedSprite;
-    private float velocityY = 0;  // Vertical velocity
+    private float velocityY = 0;
 
-    private float velocityX = 0; // Horizontal velocity
-    private final float gravity = 500; // Gravity (pixels per second squared)
-    private final float jumpVelocity = -500; // Jump velocity
+    private float velocityX = 0;
+    private final float gravity = 500;
+    private final float jumpVelocity = -500;
     private boolean isOnPlatform = false;
 
     //private float collisionOffsetX = -3; //  (left/right)
     //private float collisionOffsetY = 10;  //  (top/bottom)
 
-    private float baseSpeed = 300f; // Base movement speed
-    private float currentSpeed = baseSpeed; // Adjusted speed based on weight
+    private float baseSpeed = 300f;
+    private float currentSpeed = baseSpeed;
 
     public void updateSpeedBasedOnWeight(float weight) {
         // Reduce speed by 1% for every 1kg of weight (example logic)
@@ -51,8 +51,8 @@ public class PlayerEntity extends GameEntity {
 
     public void jump() {
         if (isOnPlatform) {
-            velocityY = jumpVelocity; // Apply upward velocity
-            isOnPlatform = false; // Leave platform
+            velocityY = jumpVelocity;
+            isOnPlatform = false;
         }
     }
 
@@ -89,8 +89,8 @@ public class PlayerEntity extends GameEntity {
                 // Y-Axis Collision (Vertical)
                 if (velocityY > 0 && (_position.y + getHeight()) >= platform.getY()) {
                     // Falling onto a platform
-                    _position.y = platform.getY() - 62; // Align player's bottom to platform top
-                    velocityY = 0; // Stop vertical motion
+                    _position.y = platform.getY() - 62;
+                    velocityY = 0;
                     isOnPlatform = true;
                 }
             }
@@ -100,9 +100,9 @@ public class PlayerEntity extends GameEntity {
         float groundLevel = screenHeight - getHeight(); // Ground level
 
         if (_position.y > groundLevel) {
-            _position.y = groundLevel; // Align to ground level
-            velocityY = 0; // Stop vertical movement
-            isOnPlatform = true; // Player is now on the ground
+            _position.y = groundLevel;
+            velocityY = 0;
+            isOnPlatform = true;
         }
 
 
@@ -128,8 +128,8 @@ public class PlayerEntity extends GameEntity {
         );
 
         Paint platformPaint = new Paint();
-        platformPaint.setColor(Color.BLACK); // Platform collision box in green
-        platformPaint.setStyle(Paint.Style.STROKE); // Outline only
+        platformPaint.setColor(Color.BLACK);
+        platformPaint.setStyle(Paint.Style.STROKE);
 
         // Loop through all platforms in the current scene
         for (Platform platform : ((MainGameScene) GameScene.getCurrent()).getPlatforms()) {

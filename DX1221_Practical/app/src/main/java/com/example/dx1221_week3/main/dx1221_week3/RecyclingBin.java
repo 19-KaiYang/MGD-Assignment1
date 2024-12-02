@@ -26,7 +26,7 @@ public class RecyclingBin extends TrashBin {
     public void onUpdate(float dt) {
         // Apply gravity if not on a platform
         if (!isOnPlatform) {
-            velocityY += gravity * dt; // Accelerate downward
+            velocityY += gravity * dt;
         }
 
         // Update position based on velocity
@@ -40,9 +40,9 @@ public class RecyclingBin extends TrashBin {
             if (checkCollisionWithPlatform(platform)) {
                 // Handle collision with the platform
                 if (velocityY > 0 && (_position.y + getHeight()) >= platform.getY()) {
-                    _position.y = platform.getY() - getHeight(); // Align with platform
-                    velocityY = 0; // Stop vertical motion
-                    isOnPlatform = true; // Mark as on a platform
+                    _position.y = platform.getY() - getHeight();
+                    velocityY = 0;
+                    isOnPlatform = true;
                     break;
                 }
             }
@@ -53,9 +53,9 @@ public class RecyclingBin extends TrashBin {
         float groundLevel = screenHeight - getHeight();
 
         if (_position.y > groundLevel) {
-            _position.y = groundLevel; // Align to ground level
-            velocityY = 0; // Stop vertical movement
-            isOnPlatform = true; // Mark as on the ground
+            _position.y = groundLevel;
+            velocityY = 0;
+            isOnPlatform = true;
         }
     }
 
@@ -75,7 +75,7 @@ public class RecyclingBin extends TrashBin {
 
 
     private boolean checkCollisionWithPlatform(Platform platform) {
-        float tolerance = 5.0f; // Small buffer to prevent floating
+        float tolerance = 5.0f;
         float trashBinBottom = _position.y + getHeight();
         float trashBinTop = _position.y;
         float trashBinLeft = _position.x;
@@ -97,7 +97,7 @@ public class RecyclingBin extends TrashBin {
     }
 
     public void addItem(Item item) {
-        currentWeight += item.getWeight(); // Add item's weight regardless of correctness
+        currentWeight += item.getWeight();
         if (!(item instanceof RecyclableObject)) {
             // Wrong item placed in recycling bin
             ((MainGameScene) GameScene.getCurrent()).loseLife();
@@ -113,14 +113,14 @@ public class RecyclingBin extends TrashBin {
 
     @Override
     public void pickUp() {
-        isPickedUp = true; // Mark the trash bin as picked up
+        isPickedUp = true;
     }
 
     @Override
     public void drop(float x, float y) {
         _position.x = x;
         _position.y = y;
-        isPickedUp = false; // Mark the trash bin as dropped
+        isPickedUp = false;
     }
 
 

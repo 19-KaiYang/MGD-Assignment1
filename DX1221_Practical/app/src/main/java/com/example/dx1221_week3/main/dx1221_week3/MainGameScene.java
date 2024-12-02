@@ -35,9 +35,9 @@ public class MainGameScene extends GameScene {
 
     private Boolean Lose;
 
-    private float cameraX = 0; // Horizontal camera offset
+    private float cameraX = 0;
     private int screenWidth, screenHeight;
-    private float totalWorldWidth; // Game world width
+    private float totalWorldWidth;
     private PlayerEntity player;
     private Joystick joystick;
     private final List<Platform> platforms = new ArrayList<>();
@@ -50,31 +50,31 @@ public class MainGameScene extends GameScene {
 
     //Pick Up
     private float pickUpButtonX, pickUpButtonY, pickUpButtonRadius;
-    private boolean isPickUpButtonPressed = false; // Tracks the previous state of the button
+    private boolean isPickUpButtonPressed = false;
     private boolean wasPickUpButtonPressed = false;
 
 
     //Inventory
-    private Item inventoryItem = null; // Can now store both TrashBin and Item objects
+    private Item inventoryItem = null;
 
     private Bitmap inventoryIcon = null; // Current inventory item icon
     private final float inventoryX = 50; // X position for inventory UI
     private final float inventoryY = 50; // Y position for inventory UI
-    private final float inventoryWidth = 100; // Width for the inventory icon
-    private final float inventoryHeight = 100; // Height for the inventory icon
+    private final float inventoryWidth = 100;
+    private final float inventoryHeight = 100;
 
 
     //Pointers
-    private int joystickPointerId = -1; // Pointer ID for joystick
-    private int jumpButtonPointerId = -1; // Pointer ID for jump button
-    private int pickUpButtonPointerId = -1; // Pointer ID for pick-up/drop button
+    private int joystickPointerId = -1;
+    private int jumpButtonPointerId = -1;
+    private int pickUpButtonPointerId = -1;
 
     //Lives
     private int lives = 3;
 
     //Timer
-    private float timer = 30; // Timer in seconds
-    private boolean isTimerRunning = true; // Controls whether the timer is active
+    private float timer = 30;
+    private boolean isTimerRunning = true;
 
 //    private boolean CollisionTest = false;
 //    private float Test;
@@ -91,7 +91,7 @@ public class MainGameScene extends GameScene {
         screenWidth = GameActivity.instance.getResources().getDisplayMetrics().widthPixels;
 
         // Define world size
-        totalWorldWidth = screenWidth * 2f; // Example: Game world is three screens wide
+        totalWorldWidth = screenWidth * 2f;
 
         // Load background
         Bitmap bmp = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.gamescene);
@@ -118,7 +118,7 @@ public class MainGameScene extends GameScene {
 
 
         // Initialize joystick with stickiness
-        joystick = new Joystick(screenWidth / 8f, screenHeight * 4f / 5.5f, 150, 75, true); // The `true` enables sticky mode
+        joystick = new Joystick(screenWidth / 8f, screenHeight * 4f / 5.5f, 150, 75, true); // True enables sticky mode
 
         // Add platforms
         platforms.add(new Platform(0, screenHeight - 200, screenWidth * 2, 100 , false));
@@ -132,14 +132,14 @@ public class MainGameScene extends GameScene {
 
         // Initialize jump button
         jumpButtonRadius = 100;
-        jumpButtonX = screenWidth - jumpButtonRadius - 150; // Right corner of the screen
+        jumpButtonX = screenWidth - jumpButtonRadius - 150;
         jumpButtonY = screenHeight - jumpButtonRadius - 130;
 
 
         // Define the position and size of the pick-up button
         pickUpButtonRadius = 100;
-        pickUpButtonX = screenWidth - pickUpButtonRadius - 500; // Adjust X position
-        pickUpButtonY = screenHeight - pickUpButtonRadius - 130; //
+        pickUpButtonX = screenWidth - pickUpButtonRadius - 500;
+        pickUpButtonY = screenHeight - pickUpButtonRadius - 130;
 
 
         // Initialize Items (Recyclable and Non-Recyclable)
@@ -163,8 +163,8 @@ public class MainGameScene extends GameScene {
                 if (isTimerRunning) {
                     timer -= dt;
                     if (timer <= 0) {
-                        isTimerRunning = false; // Stop timer
-                        timer = 0; // Prevent negative values
+                        isTimerRunning = false;
+                        timer = 0;
 
                         Lose = true;
                     }
@@ -243,7 +243,7 @@ public class MainGameScene extends GameScene {
             // Calculate speed factor based on inventory weight
             float speedFactor = 1.0f;
             if (inventoryItem != null) {
-                float maxWeight = 100.0f; // Adjust this value for max impact
+                float maxWeight = 100.0f;
                 speedFactor = Math.max(0.5f, 1.0f - (inventoryItem.getWeight() / maxWeight));
             }
 
@@ -251,13 +251,13 @@ public class MainGameScene extends GameScene {
             // Handle jumping
             if (isJumpButtonPressed && player.isOnPlatform()) {
                 player.jump();
-                isJumpButtonPressed = false; // Reset jump button
+                isJumpButtonPressed = false;
             }
 
 
             // Handle joystick movement with weight-adjusted speed
             if (joystick.isTouched() || joystick.isSticky()) {
-                float adjustedSpeed = 300 * speedFactor; // Adjust base speed with weight factor
+                float adjustedSpeed = 300 * speedFactor;
                 float deltaX = joystick.getHorizontalPercentage() * adjustedSpeed * dt;
                 player.setPositionX(player.getPositionX() + deltaX);
             }
@@ -301,8 +301,8 @@ public class MainGameScene extends GameScene {
 
 
         // Position lives relative to the camera
-        float livesX = cameraX + 50; // Offset from the left of the screen
-        float livesY = 100; // Offset from the top of the screen
+        float livesX = cameraX + 50;
+        float livesY = 100;
 
         // Render lives remaining
         Paint livesPaint = new Paint();
@@ -367,16 +367,16 @@ public class MainGameScene extends GameScene {
         // Render pick-up/drop button
         Paint pickUpButtonPaint = new Paint();
         if (inventoryItem == null) {
-            pickUpButtonPaint.setColor(Color.GREEN); // Green for pick-up
+            pickUpButtonPaint.setColor(Color.GREEN);
         } else {
-            pickUpButtonPaint.setColor(Color.RED); // Red for drop
+            pickUpButtonPaint.setColor(Color.RED);
         }
         pickUpButtonPaint.setStyle(Paint.Style.FILL);
         canvas.drawCircle(pickUpButtonX, pickUpButtonY, pickUpButtonRadius, pickUpButtonPaint);
 
         // Calculate top center position for inventory
-        float inventoryX = (screenWidth - inventoryWidth) / 2f; // Center horizontally
-        float inventoryY = 20; // Distance from the top of the screen
+        float inventoryX = (screenWidth - inventoryWidth) / 2f;
+        float inventoryY = 20;
 
         // Render inventory UI
         Paint inventoryPaint = new Paint();
@@ -417,20 +417,20 @@ public class MainGameScene extends GameScene {
             // Inventory is empty: Try to pick up an item
             for (Item item : items) {
                 if (!item.isPickedUp() && checkCollision(player, item)) {
-                    item.pickUp(); // Mark as picked up
-                    inventoryItem = item; // Store in inventory
-                    inventoryIcon = item.getIcon(); // Set inventory icon
-                    return; // Exit after picking up the item
+                    item.pickUp();
+                    inventoryItem = item;
+                    inventoryIcon = item.getIcon();
+                    return;
                 }
             }
 
             // Try to pick up a trash bin
             for (TrashBin trashBin : trashBins) {
                 if (!trashBin.isPickedUp() && checkCollision(player, trashBin)) {
-                    trashBin.pickUp(); // Mark as picked up
-                    inventoryItem = trashBin; // Store in inventory
-                    inventoryIcon = trashBin.getIcon(); // Set inventory icon
-                    return; // Exit after picking up the trash bin
+                    trashBin.pickUp();
+                    inventoryItem = trashBin;
+                    inventoryIcon = trashBin.getIcon();
+                    return;
                 }
             }
         } else {
@@ -439,18 +439,18 @@ public class MainGameScene extends GameScene {
             for (TrashBin trashBin : trashBins) {
                 if (checkCollision(player, trashBin)) {
                     if (inventoryItem instanceof RecyclableObject || inventoryItem instanceof NonRecyclableObject) {
-                        trashBin.addItem(inventoryItem); // Add the item to the trash bin
-                        inventoryItem = null; // Clear the inventory
-                        inventoryIcon = null; // Clear the inventory icon
-                        return; // Exit after dropping the item into the trash bin
+                        trashBin.addItem(inventoryItem);
+                        inventoryItem = null;
+                        inventoryIcon = null;
+                        return;
                     }
                 }
             }
 
             // Drop the inventory item near the player if not in range of a trash bin
             inventoryItem.drop(player.getPositionX(), player.getPositionY() + 100); // Drop near the player
-            inventoryItem = null; // Clear the inventory
-            inventoryIcon = null; // Clear the inventory icon
+            inventoryItem = null;
+            inventoryIcon = null;
         }
     }
 
@@ -494,7 +494,7 @@ public class MainGameScene extends GameScene {
 
     private void disablePlatform(Platform platformToDisable) {
         if (platforms.contains(platformToDisable)) {
-            platformToDisable.setDisabled(true);  // Disable the platform
+            platformToDisable.setDisabled(true);
             System.out.println("Platform at " + platformToDisable.getX() + ", " + platformToDisable.getY() + " is now disabled.");
         } else {
             System.out.println("Platform not found in the list.");
@@ -537,12 +537,12 @@ public class MainGameScene extends GameScene {
 
     public void checkWin()
     {
-        boolean allTrashed = true; // Assume all items are trashed initially
+        boolean allTrashed = true;
 
         for (Item item : items) {
-            if (!item.isTrashed()) { // If any item is not trashed
-                allTrashed = false; // Set flag to false
-                break;              // Exit the loop early
+            if (!item.isTrashed()) {
+                allTrashed = false;
+                break;
             }
         }
 
