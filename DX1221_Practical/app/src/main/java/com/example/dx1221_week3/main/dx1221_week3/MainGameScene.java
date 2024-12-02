@@ -34,8 +34,9 @@ public class MainGameScene extends GameScene {
     private PlayerEntity player;
     private Joystick joystick;
     private final List<Platform> platforms = new ArrayList<>();
-
     private final List<PressurePlate> pressurePlates = new ArrayList<>();
+
+    private final List<Door> doors = new ArrayList<>();
 
     //For Jumping
 
@@ -79,7 +80,7 @@ public class MainGameScene extends GameScene {
         screenWidth = GameActivity.instance.getResources().getDisplayMetrics().widthPixels;
 
         // Define world size
-        totalWorldWidth = screenWidth * 3f; // Example: Game world is three screens wide
+        totalWorldWidth = screenWidth * 2f; // Example: Game world is three screens wide
 
         // Load background
         Bitmap bmp = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.gamescene);
@@ -103,10 +104,14 @@ public class MainGameScene extends GameScene {
         joystick = new Joystick(screenWidth / 8f, screenHeight * 4f / 5.5f, 150, 75, true); // The `true` enables sticky mode
 
         // Add platforms
-        platforms.add(new Platform(0, screenHeight - 200, screenWidth * 3, 100));
+        platforms.add(new Platform(0, screenHeight - 200, screenWidth * 2, 100));
         platforms.add(new Platform(screenWidth / 2f, screenHeight - 400, 300, 40)); // Floating platform
+        platforms.add(new Platform(screenWidth / 2f + 300, screenHeight - 700, 40, 300)); // Floating platform
 
-        pressurePlates.add(new PressurePlate(screenWidth / 2f, screenHeight - 600, 50, 20, 20));
+        //add Pressure Plates
+        pressurePlates.add(new PressurePlate(screenWidth / 2f, screenHeight - 230, 100, 30, 20));
+
+
 
         // Initialize jump button
         jumpButtonRadius = 100;
@@ -195,6 +200,8 @@ public class MainGameScene extends GameScene {
             }
         }
 
+
+
         // Calculate speed factor based on inventory weight
         float speedFactor = 1.0f;
         if (inventoryItem != null) {
@@ -237,6 +244,10 @@ public class MainGameScene extends GameScene {
         for (Item item : items) {
             item.onUpdate(dt);
         }
+
+        for (PressurePlate pressurePlate: pressurePlates) {
+            pressurePlate.onUpdate(dt);
+        }
     }
 
 
@@ -266,8 +277,8 @@ public class MainGameScene extends GameScene {
             platform.onRender(canvas);
         }
 
-        for (GameEntity entity : _gameEntities) {
-            entity.onRender(canvas);
+        for (PressurePlate pressurePlate : pressurePlates) {
+            pressurePlate.onRender(canvas);
         }
 
         for (TrashBin trashBin : trashBins) {
@@ -279,8 +290,8 @@ public class MainGameScene extends GameScene {
             item.onRender(canvas);
         }
 
-        for (PressurePlate pressurePlate : pressurePlates) {
-            pressurePlate.onRender(canvas);
+        for (GameEntity entity : _gameEntities) {
+            entity.onRender(canvas);
         }
 
         canvas.restore();
@@ -396,6 +407,34 @@ public class MainGameScene extends GameScene {
 
         return playerRight > itemLeft && playerLeft < itemRight &&
                 playerBottom > itemTop && playerTop < itemBottom;
+    }
+
+    private void handlePressurePlateCollision() {
+        for (PressurePlate pressurePlate : pressurePlates) {
+            for (TrashBin trashBin : trashBins)
+            {
+                if (pressurePlateCollision(trashBin, pressurePlate))
+                {
+
+                }
+            }
+        }
+    }
+
+    private boolean pressurePlateCollision(TrashBin trashBin, PressurePlate pressurePlate)
+    {
+        float trashBinLeft = trashBin.getX();
+        float trashBinRight = trashBin.getX() + trashBin.getWidth();
+        float trashBinTop = trashBin.getY();
+        float trashBinBottom = trashBin.getY() + trashBin.getHeight();
+
+        float pressurePlateLeft = pressurePlate.getX();
+        float pressurePlateRight = pressurePlate.getX() + pressurePlate.getWidth();
+        float pressurePlateTop = pressurePlate.getY();
+        float pressurePlateBottom = pressurePlate.getY() + pressurePlate.getHeight();
+
+        return pressurePlateRight > trashBinLeft && pressurePlateLeft < trashBinRight &&
+                pressurePlateBottom > trashBinTop && pressurePlateTop < trashBinBottom;
     }
 
 

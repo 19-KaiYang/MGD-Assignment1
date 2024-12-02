@@ -17,6 +17,8 @@ public class PlayerEntity extends GameEntity {
 
     private final AnimatedSprite _animatedSprite;
     private float velocityY = 0;  // Vertical velocity
+
+    private float velocityX = 0; // Horizontal velocity
     private final float gravity = 500; // Gravity (pixels per second squared)
     private final float jumpVelocity = -500; // Jump velocity
     private boolean isOnPlatform = false;
@@ -53,13 +55,23 @@ public class PlayerEntity extends GameEntity {
             isOnPlatform = false; // Leave platform
         }
     }
+
     @Override
     public void onUpdate(float dt) {
         // Horizontal movement
         Joystick joystick = ((MainGameScene) GameScene.getCurrent()).getJoystick();
         if (joystick.isTouched()) {
+            // Calculate deltaX based on joystick input
             float deltaX = joystick.getHorizontalPercentage() * 300 * dt;
+
+            // Update position
             _position.x += deltaX;
+
+            // Calculate velocityX (remove dt since deltaX already factors it in)
+            velocityX = joystick.getHorizontalPercentage() * 300;
+        } else {
+            // No joystick input, velocity is zero
+            velocityX = 0;
         }
 
         // Apply gravity
@@ -74,16 +86,15 @@ public class PlayerEntity extends GameEntity {
         // Platform collision detection
         for (Platform platform : ((MainGameScene) GameScene.getCurrent()).getPlatforms()) {
             if (checkCollisionWithPlatform(platform)) {
-                // If falling down onto a platform, stop at the top
+                // Y-Axis Collision (Vertical)
                 if (velocityY > 0 && (_position.y + getHeight()) >= platform.getY()) {
-                    _position.y = platform.getY() - 62f; // Precisely align player's bottom to platform top
+                    // Falling onto a platform
+                    _position.y = platform.getY() - 62; // Align player's bottom to platform top
                     velocityY = 0; // Stop vertical motion
                     isOnPlatform = true;
-                    break;
                 }
             }
         }
-
         // Prevent falling below the ground
         int screenHeight = GameActivity.instance.getResources().getDisplayMetrics().heightPixels;
         float groundLevel = screenHeight - getHeight(); // Ground level
@@ -133,13 +144,13 @@ public class PlayerEntity extends GameEntity {
     }
 
     private boolean checkCollisionWithPlatform(Platform platform) {
-        float tolerance = 70.0f; // Tolerance value
+        float tolerance = 5.0f; // Tolerance value
         float playerLeft = _position.x - (getWidth() / 1.8f);
         float playerRight = _position.x + (getWidth() / 1.8f);
         float playerTop = _position.y - (getHeight() / 1.8f);
         float playerBottom = _position.y + (getHeight() / 2.2f);
 
-        return playerBottom + 5.0f >= platform.getY()
+        return playerBottom + tolerance >= platform.getY()
                 && playerTop <= platform.getY() + platform.getHeight()
                 && playerRight > platform.getX()
                 && playerLeft < platform.getX() + platform.getWidth();

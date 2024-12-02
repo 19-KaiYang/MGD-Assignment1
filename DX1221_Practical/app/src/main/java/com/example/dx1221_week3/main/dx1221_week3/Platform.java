@@ -50,5 +50,4 @@ public class Platform extends GameEntity {
         boundingBoxPaint.setStyle(Paint.Style.STROKE); // Outline only
         canvas.drawRect(_position.x, _position.y, _position.x + width, _position.y + height, boundingBoxPaint);
     }
-
 }
