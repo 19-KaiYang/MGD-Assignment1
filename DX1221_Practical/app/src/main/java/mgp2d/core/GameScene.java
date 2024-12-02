@@ -1,5 +1,6 @@
 package mgp2d.core;
 
+import android.content.Context;
 import android.graphics.Canvas;
 
 import java.util.HashMap;

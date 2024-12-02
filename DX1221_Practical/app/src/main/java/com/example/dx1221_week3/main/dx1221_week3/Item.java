@@ -66,6 +66,7 @@ public abstract class Item extends GameEntity {
     }
     public void setTrashed(boolean trashed) {
         isPickedUp = trashed; // Use this field to indicate the item is trashed
+        isTrashed = trashed;
     }
 
 

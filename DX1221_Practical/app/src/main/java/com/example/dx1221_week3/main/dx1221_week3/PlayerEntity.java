@@ -144,6 +144,10 @@ public class PlayerEntity extends GameEntity {
     }
 
     private boolean checkCollisionWithPlatform(Platform platform) {
+        if (platform.isDisabled()) {
+            return false;  // No collision with disabled platforms
+        }
+
         float tolerance = 5.0f; // Tolerance value
         float playerLeft = _position.x - (getWidth() / 1.8f);
         float playerRight = _position.x + (getWidth() / 1.8f);

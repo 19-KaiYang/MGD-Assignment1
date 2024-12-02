@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.media.MediaPlayer;
 import android.view.MotionEvent;
+import android.util.Log;
 
 import com.example.dx1221_week3.R;
 
@@ -23,11 +24,17 @@ public class MainGameScene extends GameScene {
 
     private final List<TrashBin> trashBins = new ArrayList<>();
 
-
-
     private final List<Item> items = new ArrayList<>();
     private Bitmap _backgroundBitmap0;
     private Bitmap _backgroundBitmap1;
+
+    private Bitmap _winBitmap;
+    private Bitmap _loseBitmap;
+
+    private Boolean Win;
+
+    private Boolean Lose;
+
     private float cameraX = 0; // Horizontal camera offset
     private int screenWidth, screenHeight;
     private float totalWorldWidth; // Game world width
@@ -35,8 +42,6 @@ public class MainGameScene extends GameScene {
     private Joystick joystick;
     private final List<Platform> platforms = new ArrayList<>();
     private final List<PressurePlate> pressurePlates = new ArrayList<>();
-
-    private final List<Door> doors = new ArrayList<>();
 
     //For Jumping
 
@@ -64,17 +69,23 @@ public class MainGameScene extends GameScene {
     private int jumpButtonPointerId = -1; // Pointer ID for jump button
     private int pickUpButtonPointerId = -1; // Pointer ID for pick-up/drop button
 
-
     //Lives
     private int lives = 3;
 
+    //Timer
+    private float timer = 30; // Timer in seconds
+    private boolean isTimerRunning = true; // Controls whether the timer is active
 
-
+//    private boolean CollisionTest = false;
+//    private float Test;
 
     @Override
     //On Start
     public void onCreate() {
         super.onCreate();
+
+        Win = false;
+        Lose = false;
 
         screenHeight = GameActivity.instance.getResources().getDisplayMetrics().heightPixels;
         screenWidth = GameActivity.instance.getResources().getDisplayMetrics().widthPixels;
@@ -87,16 +98,22 @@ public class MainGameScene extends GameScene {
         _backgroundBitmap0 = Bitmap.createScaledBitmap(bmp, screenWidth, screenHeight, true);
         _backgroundBitmap1 = Bitmap.createScaledBitmap(bmp, screenWidth, screenHeight, true);
 
+        Bitmap win = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.win);
+        _winBitmap = Bitmap.createScaledBitmap(win, screenWidth, screenHeight, true);
+
+        Bitmap lose = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.lose);
+        _loseBitmap = Bitmap.createScaledBitmap(lose, screenWidth, screenHeight, true);
+
         // Initialize player
         player = new PlayerEntity();
         _gameEntities.add(player);
 
         // Initialize TrashBin
-        TrashBin trashBin = new TrashBin(500, screenHeight - 300, R.drawable.trashbin, 100, 150, 10);
+        TrashBin trashBin = new TrashBin(500, screenHeight - 300, R.drawable.trashbin, 100, 150, 0);
         trashBins.add(trashBin);
 
         //Initialize RecyclingBin
-        RecyclingBin recyclingBin = new RecyclingBin(1600, screenHeight - 300, R.drawable.recyclingbin, 100, 150, 10);
+        RecyclingBin recyclingBin = new RecyclingBin(1600, screenHeight - 300, R.drawable.recyclingbin, 100, 150, 0);
         trashBins.add(recyclingBin);
 
 
@@ -104,13 +121,13 @@ public class MainGameScene extends GameScene {
         joystick = new Joystick(screenWidth / 8f, screenHeight * 4f / 5.5f, 150, 75, true); // The `true` enables sticky mode
 
         // Add platforms
-        platforms.add(new Platform(0, screenHeight - 200, screenWidth * 2, 100));
-        platforms.add(new Platform(screenWidth / 2f, screenHeight - 400, 300, 40)); // Floating platform
-        platforms.add(new Platform(screenWidth / 2f + 300, screenHeight - 700, 40, 300)); // Floating platform
+        platforms.add(new Platform(0, screenHeight - 200, screenWidth * 2, 100 , false));
+        platforms.add(new Platform(screenWidth / 2f, screenHeight - 400, 300, 40, false)); // Floating platform
+        platforms.add(new Platform(1700, screenHeight  - 600, 300, 40, true)); // PressurePlate1
+        platforms.add(new Platform(2300, screenHeight  - 800, 1000, 40, false));
 
         //add Pressure Plates
-        pressurePlates.add(new PressurePlate(screenWidth / 2f, screenHeight - 230, 100, 30, 20));
-
+        pressurePlates.add(new PressurePlate(screenWidth / 2f, screenHeight - 230, 100, 30, 20 , platforms.get(2)));
 
 
         // Initialize jump button
@@ -125,131 +142,152 @@ public class MainGameScene extends GameScene {
         pickUpButtonY = screenHeight - pickUpButtonRadius - 130; //
 
 
-         // Initialize Items (Recyclable and Non-Recyclable)
+        // Initialize Items (Recyclable and Non-Recyclable)
         // ADD ITEMS HERE
         // ALL RECYCLABLE AND NON RECYCLABLE
         Bitmap recyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.bottle);
         Bitmap nonRecyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.trashbag);
 
-        items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 20)); // Weight = 20kg
-        items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 10)); // Weight = 10kg
+        items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+        items.add(new NonRecyclableObject(2500, screenHeight  - 850, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
     }
 
     @Override
     public void onUpdate(float dt) {
-        MotionEvent event = GameActivity.instance.getMotionEvent();
-        if (event != null) {
-            int action = event.getActionMasked();
-            int pointerIndex = event.getActionIndex();
-            int pointerId = event.getPointerId(pointerIndex);
-            float touchX = event.getX(pointerIndex);
-            float touchY = event.getY(pointerIndex);
 
-            switch (action) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_POINTER_DOWN:
-                    // Handle joystick
-                    if (Math.hypot(touchX - joystick.getCenterX(), touchY - joystick.getCenterY()) <= joystick.getBaseRadius() && joystickPointerId == -1) {
-                        joystickPointerId = pointerId;
-                        joystick.setTouched(true);
-                        joystick.update(touchX, touchY);
+        if (!Win || !Lose) {
+            //Timer
+            if (!Win) {
+                if (isTimerRunning) {
+                    timer -= dt;
+                    if (timer <= 0) {
+                        isTimerRunning = false; // Stop timer
+                        timer = 0; // Prevent negative values
+
+                        Lose = true;
                     }
-                    // Handle jump button
-                    else if (Math.hypot(touchX - jumpButtonX, touchY - jumpButtonY) <= jumpButtonRadius && jumpButtonPointerId == -1) {
-                        jumpButtonPointerId = pointerId;
-                        isJumpButtonPressed = true;
-                    }
-                    // Handle pick-up/drop button
-                    else if (Math.hypot(touchX - pickUpButtonX, touchY - pickUpButtonY) <= pickUpButtonRadius && pickUpButtonPointerId == -1) {
-                        pickUpButtonPointerId = pointerId;
-                        if (!wasPickUpButtonPressed) {
-                            isPickUpButtonPressed = true;
-                            handlePickUpOrDrop(); // Execute pick-up/drop logic
-                            wasPickUpButtonPressed = true; // Prevent spamming
+                }
+            }
+
+            checkWin();
+
+            //Check Pressure plate Collisions
+            handlePressurePlateCollision();
+
+            MotionEvent event = GameActivity.instance.getMotionEvent();
+            if (event != null) {
+                int action = event.getActionMasked();
+                int pointerIndex = event.getActionIndex();
+                int pointerId = event.getPointerId(pointerIndex);
+                float touchX = event.getX(pointerIndex);
+                float touchY = event.getY(pointerIndex);
+
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_POINTER_DOWN:
+                        // Handle joystick
+                        if (Math.hypot(touchX - joystick.getCenterX(), touchY - joystick.getCenterY()) <= joystick.getBaseRadius() && joystickPointerId == -1) {
+                            joystickPointerId = pointerId;
+                            joystick.setTouched(true);
+                            joystick.update(touchX, touchY);
                         }
-                    }
-                    break;
-
-                case MotionEvent.ACTION_MOVE:
-                    for (int i = 0; i < event.getPointerCount(); i++) {
-                        int movePointerId = event.getPointerId(i);
-                        float moveTouchX = event.getX(i);
-                        float moveTouchY = event.getY(i);
-
-                        if (movePointerId == joystickPointerId) {
-                            joystick.update(moveTouchX, moveTouchY);
+                        // Handle jump button
+                        else if (Math.hypot(touchX - jumpButtonX, touchY - jumpButtonY) <= jumpButtonRadius && jumpButtonPointerId == -1) {
+                            jumpButtonPointerId = pointerId;
+                            isJumpButtonPressed = true;
                         }
-                    }
-                    break;
+                        // Handle pick-up/drop button
+                        else if (Math.hypot(touchX - pickUpButtonX, touchY - pickUpButtonY) <= pickUpButtonRadius && pickUpButtonPointerId == -1) {
+                            pickUpButtonPointerId = pointerId;
+                            if (!wasPickUpButtonPressed) {
+                                isPickUpButtonPressed = true;
+                                handlePickUpOrDrop(); // Execute pick-up/drop logic
+                                wasPickUpButtonPressed = true; // Prevent spamming
+                            }
+                        }
+                        break;
 
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_POINTER_UP:
-                    if (pointerId == joystickPointerId) {
-                        joystickPointerId = -1;
-                        joystick.setTouched(false);
-                        joystick.reset();
-                    } else if (pointerId == jumpButtonPointerId) {
-                        jumpButtonPointerId = -1;
-                        isJumpButtonPressed = false;
-                    } else if (pointerId == pickUpButtonPointerId) {
-                        pickUpButtonPointerId = -1;
-                        isPickUpButtonPressed = false;
-                        wasPickUpButtonPressed = false;
-                    }
-                    break;
+                    case MotionEvent.ACTION_MOVE:
+                        for (int i = 0; i < event.getPointerCount(); i++) {
+                            int movePointerId = event.getPointerId(i);
+                            float moveTouchX = event.getX(i);
+                            float moveTouchY = event.getY(i);
+
+                            if (movePointerId == joystickPointerId) {
+                                joystick.update(moveTouchX, moveTouchY);
+                            }
+                        }
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_POINTER_UP:
+                        if (pointerId == joystickPointerId) {
+                            joystickPointerId = -1;
+                            joystick.setTouched(false);
+                            joystick.reset();
+                        } else if (pointerId == jumpButtonPointerId) {
+                            jumpButtonPointerId = -1;
+                            isJumpButtonPressed = false;
+                        } else if (pointerId == pickUpButtonPointerId) {
+                            pickUpButtonPointerId = -1;
+                            isPickUpButtonPressed = false;
+                            wasPickUpButtonPressed = false;
+                        }
+                        break;
+                }
+            }
+
+
+            // Calculate speed factor based on inventory weight
+            float speedFactor = 1.0f;
+            if (inventoryItem != null) {
+                float maxWeight = 100.0f; // Adjust this value for max impact
+                speedFactor = Math.max(0.5f, 1.0f - (inventoryItem.getWeight() / maxWeight));
+            }
+
+
+            // Handle jumping
+            if (isJumpButtonPressed && player.isOnPlatform()) {
+                player.jump();
+                isJumpButtonPressed = false; // Reset jump button
+            }
+
+
+            // Handle joystick movement with weight-adjusted speed
+            if (joystick.isTouched() || joystick.isSticky()) {
+                float adjustedSpeed = 300 * speedFactor; // Adjust base speed with weight factor
+                float deltaX = joystick.getHorizontalPercentage() * adjustedSpeed * dt;
+                player.setPositionX(player.getPositionX() + deltaX);
+            }
+
+            // Update other game logic
+            float playerX = player.getPositionX();
+            cameraX = playerX - screenWidth / 2f;
+            cameraX = Math.max(0, Math.min(cameraX, totalWorldWidth - screenWidth));
+
+            for (GameEntity entity : _gameEntities) {
+                entity.onUpdate(dt);
+            }
+
+            for (Platform platform : platforms) {
+                platform.onUpdate(dt);
+            }
+
+            for (TrashBin trashBin : trashBins) {
+                trashBin.onUpdate(dt);
+            }
+
+            for (Item item : items) {
+                item.onUpdate(dt);
+            }
+
+            for (PressurePlate pressurePlate : pressurePlates) {
+                pressurePlate.onUpdate(dt);
             }
         }
-
-
-
-        // Calculate speed factor based on inventory weight
-        float speedFactor = 1.0f;
-        if (inventoryItem != null) {
-            float maxWeight = 100.0f; // Adjust this value for max impact
-            speedFactor = Math.max(0.5f, 1.0f - (inventoryItem.getWeight() / maxWeight));
-        }
-
-
-        // Handle jumping
-        if (isJumpButtonPressed && player.isOnPlatform()) {
-            player.jump();
-            isJumpButtonPressed = false; // Reset jump button
-        }
-
-
-        // Handle joystick movement with weight-adjusted speed
-        if (joystick.isTouched() || joystick.isSticky()) {
-            float adjustedSpeed = 300 * speedFactor; // Adjust base speed with weight factor
-            float deltaX = joystick.getHorizontalPercentage() * adjustedSpeed * dt;
-            player.setPositionX(player.getPositionX() + deltaX);
-        }
-
-        // Update other game logic
-        float playerX = player.getPositionX();
-        cameraX = playerX - screenWidth / 2f;
-        cameraX = Math.max(0, Math.min(cameraX, totalWorldWidth - screenWidth));
-
-        for (GameEntity entity : _gameEntities) {
-            entity.onUpdate(dt);
-        }
-
-        for (Platform platform : platforms) {
-            platform.onUpdate(dt);
-        }
-
-        for (TrashBin trashBin : trashBins) {
-            trashBin.onUpdate(dt);
-        }
-
-        for (Item item : items) {
-            item.onUpdate(dt);
-        }
-
-        for (PressurePlate pressurePlate: pressurePlates) {
-            pressurePlate.onUpdate(dt);
-        }
     }
-
 
 
     @Override
@@ -268,21 +306,33 @@ public class MainGameScene extends GameScene {
 
         // Render lives remaining
         Paint livesPaint = new Paint();
-        livesPaint.setColor(Color.RED);
         livesPaint.setTextSize(80);
+        livesPaint.setColor(Color.RED);
         canvas.drawText("Lives: " + lives, livesX, livesY, livesPaint);
 
+        //For Testing
+//        if (CollisionTest)
+//        {
+//            livesPaint.setColor(Color.BLUE);
+//            canvas.drawText("Weight: " + Test, cameraX + 50, 200, livesPaint);
+//        }
+//        else
+//        {
+//
+//        }
 
         for (Platform platform : platforms) {
-            platform.onRender(canvas);
-        }
-
-        for (PressurePlate pressurePlate : pressurePlates) {
-            pressurePlate.onRender(canvas);
+            if (!platform.isDisabled()) {
+                platform.onRender(canvas);
+            }
         }
 
         for (TrashBin trashBin : trashBins) {
             trashBin.onRender(canvas);
+        }
+
+        for (PressurePlate pressurePlate : pressurePlates) {
+            pressurePlate.onRender(canvas);
         }
 
         // Render items
@@ -333,14 +383,25 @@ public class MainGameScene extends GameScene {
         inventoryPaint.setColor(Color.DKGRAY); // Background for inventory slot
         canvas.drawRect(inventoryX, inventoryY, inventoryX + inventoryWidth, inventoryY + inventoryHeight, inventoryPaint);
 
+        Paint textPaint = new Paint();
+        textPaint.setColor(Color.BLACK);
+        textPaint.setTextSize(80);
+        canvas.drawText("Time: " + String.format("%.0f", timer) + "s", 1850, 100, textPaint);
+
         if (inventoryIcon != null) {
             // Draw the current inventory icon
             canvas.drawBitmap(inventoryIcon, null,
                     new android.graphics.RectF(inventoryX, inventoryY, inventoryX + inventoryWidth, inventoryY + inventoryHeight), null);
         }
+
+        if (Win) {
+            canvas.drawBitmap(_winBitmap, 0, 0, null);
+        }
+
+        if (Lose) {
+            canvas.drawBitmap(_loseBitmap, 0, 0, null);
+        }
     }
-
-
 
     public List<Platform> getPlatforms() {
         return platforms;
@@ -395,6 +456,7 @@ public class MainGameScene extends GameScene {
 
 
     private boolean checkCollision(PlayerEntity player, Item item) {
+
         float playerLeft = player.getPositionX();
         float playerRight = player.getPositionX() + player.getWidth();
         float playerTop = player.getPositionY();
@@ -409,20 +471,47 @@ public class MainGameScene extends GameScene {
                 playerBottom > itemTop && playerTop < itemBottom;
     }
 
-    private void handlePressurePlateCollision() {
-        for (PressurePlate pressurePlate : pressurePlates) {
+    private void handlePressurePlateCollision()
+    {
+        for (PressurePlate pressurePlate : pressurePlates)
+        {
             for (TrashBin trashBin : trashBins)
             {
                 if (pressurePlateCollision(trashBin, pressurePlate))
                 {
+//                    CollisionTest = true;
+//                    Test = pressurePlate.currentWeight;
 
+                    if (trashBin.getCurrentWeight() >= pressurePlate.weightReq)
+                    {
+                        enablePlatform(pressurePlate.relatedPlatform);
+                    }
                 }
             }
         }
     }
 
-    private boolean pressurePlateCollision(TrashBin trashBin, PressurePlate pressurePlate)
-    {
+
+    private void disablePlatform(Platform platformToDisable) {
+        if (platforms.contains(platformToDisable)) {
+            platformToDisable.setDisabled(true);  // Disable the platform
+            System.out.println("Platform at " + platformToDisable.getX() + ", " + platformToDisable.getY() + " is now disabled.");
+        } else {
+            System.out.println("Platform not found in the list.");
+        }
+    }
+
+    // Method to enable a platform by passing the platform object
+    public void enablePlatform(Platform platformToEnable) {
+        if (platforms.contains(platformToEnable)) {
+            platformToEnable.setDisabled(false);  // Enable the platform
+            System.out.println("Platform at " + platformToEnable.getX() + ", " + platformToEnable.getY() + " is now enabled.");
+        } else {
+            System.out.println("Platform not found in the list.");
+        }
+    }
+
+    private boolean pressurePlateCollision(TrashBin trashBin, PressurePlate pressurePlate) {
         float trashBinLeft = trashBin.getX();
         float trashBinRight = trashBin.getX() + trashBin.getWidth();
         float trashBinTop = trashBin.getY();
@@ -446,9 +535,25 @@ public class MainGameScene extends GameScene {
         }
     }
 
-    private void endGame()
+    public void checkWin()
     {
-       //End Game Logic Here
+        boolean allTrashed = true; // Assume all items are trashed initially
 
+        for (Item item : items) {
+            if (!item.isTrashed()) { // If any item is not trashed
+                allTrashed = false; // Set flag to false
+                break;              // Exit the loop early
+            }
+        }
+
+        if (allTrashed) {
+            System.out.println("You win! All items have been trashed.");
+            Win = true;
+        }
+    }
+
+    private void endGame() {
+        //End Game Logic Here
+        Lose = true;
     }
 }

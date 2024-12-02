@@ -3,6 +3,7 @@ package com.example.dx1221_week3.main.dx1221_week3;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import java.util.List;
 
 import mgp2d.core.GameActivity;
 import mgp2d.core.GameEntity;
@@ -14,12 +15,17 @@ public class PressurePlate extends GameEntity
 
     protected float weightReq;
 
-    public PressurePlate(float x, float y, float width, float height, float weightReq) {
+    public Platform relatedPlatform;
+
+    public float currentWeight;
+    public PressurePlate(float x, float y, float width, float height, float weightReq, Platform relatedPlatform) {
         _position.x = x;
         _position.y = y;
         this.width = width;
         this.height = height;
         this.weightReq = weightReq;
+        this.relatedPlatform = relatedPlatform;
+        this.currentWeight = 0;
     }
 
     public float getX() {

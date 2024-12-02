@@ -24,7 +24,6 @@
             android:screenOrientation="sensorLandscape"
             tools:ignore="DiscourageApi">
         </activity>
-
         <activity
             android:name="mgp2d.core.GameActivity"
             android:screenOrientation="sensorLandscape"
