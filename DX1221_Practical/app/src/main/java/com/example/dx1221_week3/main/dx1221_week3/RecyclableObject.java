@@ -62,18 +62,21 @@ public class RecyclableObject extends Item {
             // Render the item directly at its world position
             canvas.drawBitmap(itemImage, _position.x, _position.y, null);
 
-            // Draw weight text above the object
-            Paint textPaint = new Paint();
-            textPaint.setColor(Color.WHITE);
-            textPaint.setTextSize(30);
-            textPaint.setTextAlign(Paint.Align.CENTER);
+            if (isColliding)
+            {
+                // Draw weight text above the object
+                Paint textPaint = new Paint();
+                textPaint.setColor(Color.WHITE);
+                textPaint.setTextSize(30);
+                textPaint.setTextAlign(Paint.Align.CENTER);
 
-            // Calculate the position for the weight text
-            float textX = _position.x + (width / 2f);
-            float textY = _position.y - 10;
+                // Calculate the position for the weight text
+                float textX = _position.x + (width / 2f);
+                float textY = _position.y - 10;
 
-            // Draw the weight as text
-            canvas.drawText(weight + " kg", textX, textY, textPaint);
+                // Draw the weight as text
+                canvas.drawText(weight + " kg", textX, textY, textPaint);
+            }
         }
     }
 

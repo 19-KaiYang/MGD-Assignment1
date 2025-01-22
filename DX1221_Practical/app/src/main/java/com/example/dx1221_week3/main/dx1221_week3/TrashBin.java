@@ -72,11 +72,14 @@ public class TrashBin extends Item {
             // Draw the trash bin image
             canvas.drawBitmap(itemImage, _position.x, _position.y, null);
 
-            // Draw the weight text above the trash bin
-            Paint textPaint = new Paint();
-            textPaint.setColor(Color.WHITE);
-            textPaint.setTextSize(30);
-            canvas.drawText(currentWeight + " kg", _position.x, _position.y - 10, textPaint); // Display weight
+            if (isColliding)
+            {
+                // Draw the weight text above the trash bin
+                Paint textPaint = new Paint();
+                textPaint.setColor(Color.WHITE);
+                textPaint.setTextSize(30);
+                canvas.drawText(currentWeight + " kg", _position.x, _position.y - 10, textPaint); // Display weight
+            }
         }
     }
 

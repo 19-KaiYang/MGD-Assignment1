@@ -13,6 +13,8 @@ public class PressurePlate extends GameEntity
 {
     protected float width, height; // Item's dimensions
 
+    protected float originalHeight;
+
     protected float weightReq;
 
     public Platform relatedPlatform;
@@ -26,6 +28,7 @@ public class PressurePlate extends GameEntity
         this.weightReq = weightReq;
         this.relatedPlatform = relatedPlatform;
         this.currentWeight = 0;
+        this.originalHeight = this.height;
     }
 
     public float getX() {

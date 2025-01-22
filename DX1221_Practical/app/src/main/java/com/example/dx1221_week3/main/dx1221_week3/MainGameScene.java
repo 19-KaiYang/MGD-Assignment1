@@ -1,11 +1,14 @@
 package com.example.dx1221_week3.main.dx1221_week3;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.media.MediaPlayer;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.MotionEvent;
 import android.util.Log;
 
@@ -76,6 +79,14 @@ public class MainGameScene extends GameScene {
     private float timer = 30;
     private boolean isTimerRunning = true;
 
+    //Audio
+    private MediaPlayer _jumpSFX;
+    private MediaPlayer _bgm;
+    private MediaPlayer _pressurePlateSFX;
+
+    //Haptic
+    private Vibrator _vibration;
+
 //    private boolean CollisionTest = false;
 //    private float Test;
 
@@ -129,7 +140,6 @@ public class MainGameScene extends GameScene {
         //add Pressure Plates
         pressurePlates.add(new PressurePlate(screenWidth / 2f, screenHeight - 230, 100, 30, 20 , platforms.get(2)));
 
-
         // Initialize jump button
         jumpButtonRadius = 100;
         jumpButtonX = screenWidth - jumpButtonRadius - 150;
@@ -141,6 +151,21 @@ public class MainGameScene extends GameScene {
         pickUpButtonX = screenWidth - pickUpButtonRadius - 500;
         pickUpButtonY = screenHeight - pickUpButtonRadius - 130;
 
+        //MediaPlayer Audio
+        _jumpSFX = MediaPlayer.create(GameActivity.instance.getApplicationContext(), R.raw.jump_sfx);
+        _jumpSFX.setLooping(false);
+        _jumpSFX.setVolume(50, 50);
+
+        _bgm = MediaPlayer.create(GameActivity.instance.getApplicationContext(), R.raw.bgm);
+        _bgm.setLooping(true);
+        _bgm.setVolume(0.2f, 0.2f);
+        _bgm.start();
+
+        _pressurePlateSFX = MediaPlayer.create(GameActivity.instance.getApplicationContext(), R.raw.pressureplate_sfx);
+        _pressurePlateSFX.setLooping(false);
+
+        //Haptic Feedback
+        _vibration = (Vibrator) GameActivity.instance.getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 
         // Initialize Items (Recyclable and Non-Recyclable)
         // ADD ITEMS HERE
@@ -176,6 +201,16 @@ public class MainGameScene extends GameScene {
             //Check Pressure plate Collisions
             handlePressurePlateCollision();
 
+            for (Item item : items)
+            {
+                item.isColliding = checkCollision(player, item);
+            }
+
+            for (TrashBin trashBin : trashBins)
+            {
+                trashBin.isColliding = checkCollision(player, trashBin);
+            }
+
             MotionEvent event = GameActivity.instance.getMotionEvent();
             if (event != null) {
                 int action = event.getActionMasked();
@@ -192,6 +227,13 @@ public class MainGameScene extends GameScene {
                             joystickPointerId = pointerId;
                             joystick.setTouched(true);
                             joystick.update(touchX, touchY);
+
+                            // Determine left or right movement
+                            if (touchX < joystick.getCenterX()) {
+                                player.isMovingRight = false;
+                            } else if (touchX > joystick.getCenterX()) {
+                                player.isMovingRight = true;
+                            }
                         }
                         // Handle jump button
                         else if (Math.hypot(touchX - jumpButtonX, touchY - jumpButtonY) <= jumpButtonRadius && jumpButtonPointerId == -1) {
@@ -217,6 +259,13 @@ public class MainGameScene extends GameScene {
 
                             if (movePointerId == joystickPointerId) {
                                 joystick.update(moveTouchX, moveTouchY);
+
+                                // Update left or right movement based on the joystick position
+                                if (moveTouchX < joystick.getCenterX()) {
+                                    player.isMovingRight = false;
+                                } else if (moveTouchX > joystick.getCenterX()) {
+                                    player.isMovingRight = true;
+                                }
                             }
                         }
                         break;
@@ -251,6 +300,7 @@ public class MainGameScene extends GameScene {
             // Handle jumping
             if (isJumpButtonPressed && player.isOnPlatform()) {
                 player.jump();
+                _jumpSFX.start();
                 isJumpButtonPressed = false;
             }
 
@@ -416,28 +466,35 @@ public class MainGameScene extends GameScene {
         if (inventoryItem == null) {
             // Inventory is empty: Try to pick up an item
             for (Item item : items) {
-                if (!item.isPickedUp() && checkCollision(player, item)) {
-                    item.pickUp();
-                    inventoryItem = item;
-                    inventoryIcon = item.getIcon();
-                    return;
+                if (checkCollision(player, item))
+                {
+                    if (!item.isPickedUp()) {
+                        item.pickUp();
+                        inventoryItem = item;
+                        inventoryIcon = item.getIcon();
+                        return;
+                    }
                 }
             }
 
             // Try to pick up a trash bin
             for (TrashBin trashBin : trashBins) {
-                if (!trashBin.isPickedUp() && checkCollision(player, trashBin)) {
-                    trashBin.pickUp();
-                    inventoryItem = trashBin;
-                    inventoryIcon = trashBin.getIcon();
-                    return;
+                if (checkCollision(player, trashBin))
+                {
+                    if (!trashBin.isPickedUp()) {
+                        trashBin.pickUp();
+                        inventoryItem = trashBin;
+                        inventoryIcon = trashBin.getIcon();
+                        return;
+                    }
                 }
             }
         } else {
             // Inventory is full: Handle dropping the inventory item
             // Check if the player is in range of a trash bin
             for (TrashBin trashBin : trashBins) {
-                if (checkCollision(player, trashBin)) {
+                if (checkCollision(player, trashBin))
+                {
                     if (inventoryItem instanceof RecyclableObject || inventoryItem instanceof NonRecyclableObject) {
                         trashBin.addItem(inventoryItem);
                         inventoryItem = null;
@@ -457,18 +514,18 @@ public class MainGameScene extends GameScene {
 
     private boolean checkCollision(PlayerEntity player, Item item) {
 
-        float playerLeft = player.getPositionX();
-        float playerRight = player.getPositionX() + player.getWidth();
-        float playerTop = player.getPositionY();
-        float playerBottom = player.getPositionY() + player.getHeight();
+            float playerLeft = player.getPositionX();
+            float playerRight = player.getPositionX() + player.getWidth();
+            float playerTop = player.getPositionY();
+            float playerBottom = player.getPositionY() + player.getHeight();
 
-        float itemLeft = item.getX();
-        float itemRight = item.getX() + item.getWidth();
-        float itemTop = item.getY();
-        float itemBottom = item.getY() + item.getHeight();
+            float itemLeft = item.getX();
+            float itemRight = item.getX() + item.getWidth();
+            float itemTop = item.getY();
+            float itemBottom = item.getY() + item.getHeight();
 
-        return playerRight > itemLeft && playerLeft < itemRight &&
-                playerBottom > itemTop && playerTop < itemBottom;
+            return playerRight > itemLeft && playerLeft < itemRight &&
+                    playerBottom > itemTop && playerTop < itemBottom;
     }
 
     private void handlePressurePlateCollision()
@@ -477,15 +534,27 @@ public class MainGameScene extends GameScene {
         {
             for (TrashBin trashBin : trashBins)
             {
-                if (pressurePlateCollision(trashBin, pressurePlate))
+                if (pressurePlateCollision(trashBin, pressurePlate) && !trashBin.isPickedUp)
                 {
 //                    CollisionTest = true;
 //                    Test = pressurePlate.currentWeight;
 
-                    if (trashBin.getCurrentWeight() >= pressurePlate.weightReq)
-                    {
+                    if (trashBin.getCurrentWeight() >= pressurePlate.weightReq) {
+                        pressurePlate.height = 0;
+
+                        if (isPickUpButtonPressed) {
+                            _vibration.vibrate(VibrationEffect.createOneShot(2, 250));
+                            _pressurePlateSFX.start();
+                        }
+
                         enablePlatform(pressurePlate.relatedPlatform);
                     }
+                }
+                else
+                {
+                    pressurePlate.height = pressurePlate.originalHeight;
+
+                    disablePlatform(pressurePlate.relatedPlatform);
                 }
             }
         }

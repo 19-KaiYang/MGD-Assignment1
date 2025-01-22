@@ -14,6 +14,8 @@ public abstract class Item extends GameEntity {
     protected float width, height;
     protected boolean isPickedUp = false;
 
+    protected boolean isColliding = false;
+
     protected boolean isTrashed = false;
     protected float weight;
 

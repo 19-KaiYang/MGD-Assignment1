@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Matrix;
 
 import com.example.dx1221_week3.R;
 
@@ -28,6 +29,8 @@ public class PlayerEntity extends GameEntity {
 
     private float baseSpeed = 300f;
     private float currentSpeed = baseSpeed;
+
+    protected boolean isMovingRight;
 
     public void updateSpeedBasedOnWeight(float weight) {
         // Reduce speed by 1% for every 1kg of weight (example logic)
@@ -114,7 +117,19 @@ public class PlayerEntity extends GameEntity {
 
     @Override
     public void onRender(Canvas canvas) {
+        // Save the current canvas state
+        canvas.save();
+
+        if (!isMovingRight) {
+            // Flip the canvas horizontally for right movement
+            canvas.scale(-1, 1, _position.x, _position.y);
+        }
+
+        // Render the sprite (flipped or not based on canvas state)
         _animatedSprite.render(canvas, (int) _position.x, (int) _position.y, null);
+
+        // Restore the canvas to its original state
+        canvas.restore();
 
         Paint debugPaint = new Paint();
         debugPaint.setColor(Color.RED);
