@@ -1,6 +1,7 @@
 package com.example.dx1221_week3.main.dx1221_week3;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -77,7 +78,7 @@ public class MainGameScene extends GameScene {
     private int lives = 3;
 
     //Timer
-    private float timer = 30;
+    private float timer = 5;
     private boolean isTimerRunning = true;
 
     //Audio
@@ -197,6 +198,27 @@ public class MainGameScene extends GameScene {
 
     @Override
     public void onUpdate(float dt) {
+
+
+        if (Lose) {
+
+            GameActivity.instance.runOnUiThread(() -> {
+                Intent intent = new Intent(GameActivity.instance, LosePage.class);
+                GameActivity.instance.startActivity(intent);
+                GameActivity.instance.finish();
+            });
+            return;
+        }
+
+        if (Win) {
+
+            GameActivity.instance.runOnUiThread(() -> {
+                Intent intent = new Intent(GameActivity.instance, WinPage.class);
+                GameActivity.instance.startActivity(intent);
+                GameActivity.instance.finish();
+            });
+            return;
+        }
 
         if (!Win || !Lose) {
 
@@ -472,13 +494,7 @@ public class MainGameScene extends GameScene {
                     new android.graphics.RectF(inventoryX, inventoryY, inventoryX + inventoryWidth, inventoryY + inventoryHeight), null);
         }
 
-        if (Win) {
-            canvas.drawBitmap(_winBitmap, 0, 0, null);
-        }
 
-        if (Lose) {
-            canvas.drawBitmap(_loseBitmap, 0, 0, null);
-        }
 
 
         // Draw the pause button
