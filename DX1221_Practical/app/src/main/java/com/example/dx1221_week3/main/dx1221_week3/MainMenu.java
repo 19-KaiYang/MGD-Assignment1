@@ -20,6 +20,8 @@ public class MainMenu extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.mainmenu);
+
+        // Initialize buttons
         _helpButton = findViewById(R.id.help_btn);
         _helpButton.setOnClickListener(this);
 
@@ -30,12 +32,19 @@ public class MainMenu extends Activity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         if (v == _helpButton) {
-            startActivity(new Intent().setClass(this, HelpPage.class));
+            // Start HelpPage activity
+            startActivity(new Intent(this, HelpPage.class));
         } else if (v == _startButton) {
-            startActivity(new Intent().setClass(this, GameActivity.class));
+            // Start GameActivity and transition to the main game scene
+            Intent intent = new Intent(this, GameActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Clear the stack and start fresh
+            startActivity(intent);
+
+            // Now enter the main game scene after starting the GameActivity
             GameScene.enter(MainGameScene.class);
+
+            // Finish MainMenu activity to prevent navigating back to it
+            finish();
         }
     }
-
-
 }

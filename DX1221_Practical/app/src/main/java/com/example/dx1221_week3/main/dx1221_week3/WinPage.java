@@ -16,14 +16,23 @@ public class WinPage extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.winpage);
+
+        // Initialize the back button
         _backButton = findViewById(R.id.back_btn);
+        // Set click listener for the back button
         _backButton.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         if (v == _backButton) {
-            startActivity(new Intent().setClass(this, MainMenu.class));
+            // Start MainMenu activity with flags to clear the stack
+            Intent intent = new Intent(this, MainMenu.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Clear the stack
+            startActivity(intent);
+
+            // Finish WinPage so it is removed from the back stack
+            finish();
         }
     }
 }
