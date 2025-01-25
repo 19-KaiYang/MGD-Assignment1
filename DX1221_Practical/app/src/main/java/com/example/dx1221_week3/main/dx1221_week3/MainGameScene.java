@@ -550,7 +550,7 @@ public class MainGameScene extends GameScene {
                         enablePlatform(pressurePlate.relatedPlatform);
                     }
                 }
-                else
+                else if (trashBin.isPickedUp)
                 {
                     pressurePlate.height = pressurePlate.originalHeight;
 
