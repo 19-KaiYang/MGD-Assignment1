@@ -493,6 +493,22 @@ public class MainGameScene extends GameScene {
         icontextPaint.setTextSize(50);
         icontextPaint.setTextAlign(Paint.Align.CENTER);
         canvas.drawText(isPaused ? "▶" : "||", pauseButtonX, pauseButtonY + 20, icontextPaint);
+
+        // Draw the "PAUSED" overlay if paused
+        if (isPaused) {
+            // Draw a black rectangle covering the entire screen
+            Paint overlayPaint = new Paint();
+            overlayPaint.setColor(Color.BLACK);
+            overlayPaint.setAlpha(150); // Semi-transparent
+            canvas.drawRect(0, 0, screenWidth, screenHeight, overlayPaint);
+
+            // Draw "PAUSED" text in the center
+            Paint pausetextPaint = new Paint();
+            pausetextPaint.setColor(Color.RED);
+            pausetextPaint.setTextSize(100);
+            pausetextPaint.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText("PAUSED", screenWidth / 2f, screenHeight / 2f, pausetextPaint);
+        }
     }
 
     public List<Platform> getPlatforms() {
