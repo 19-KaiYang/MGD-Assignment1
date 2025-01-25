@@ -204,8 +204,8 @@ public class MainGameScene extends GameScene {
 
             GameActivity.instance.runOnUiThread(() -> {
                 Intent intent = new Intent(GameActivity.instance, LosePage.class);
-                GameActivity.instance.startActivity(intent);
                 GameActivity.instance.finish();
+                GameActivity.instance.startActivity(intent);
             });
             return;
         }
@@ -214,8 +214,8 @@ public class MainGameScene extends GameScene {
 
             GameActivity.instance.runOnUiThread(() -> {
                 Intent intent = new Intent(GameActivity.instance, WinPage.class);
-                GameActivity.instance.startActivity(intent);
                 GameActivity.instance.finish();
+                GameActivity.instance.startActivity(intent);
             });
             return;
         }
