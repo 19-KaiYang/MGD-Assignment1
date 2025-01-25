@@ -10,7 +10,6 @@ import android.media.MediaPlayer;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.MotionEvent;
-import android.util.Log;
 
 import com.example.dx1221_week3.R;
 
@@ -72,6 +71,8 @@ public class MainGameScene extends GameScene {
     private int jumpButtonPointerId = -1;
     private int pickUpButtonPointerId = -1;
 
+    private int pauseButtonPointerId = -1;
+
     //Lives
     private int lives = 3;
 
@@ -86,6 +87,14 @@ public class MainGameScene extends GameScene {
 
     //Haptic
     private Vibrator _vibration;
+
+
+    //Pause
+    private boolean isPaused = false;
+    private float pauseButtonX, pauseButtonY, pauseButtonRadius;
+    private boolean isPauseButtonPressed = false;
+
+
 
 //    private boolean CollisionTest = false;
 //    private float Test;
@@ -177,12 +186,20 @@ public class MainGameScene extends GameScene {
         items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 10)); // Weight = 10kg
         items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
         items.add(new NonRecyclableObject(2500, screenHeight  - 850, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+
+
+
+        //Create Pause
+        pauseButtonRadius = 100;
+        pauseButtonX = screenWidth - pauseButtonRadius - 50;
+        pauseButtonY = pauseButtonRadius + 50;
     }
 
     @Override
     public void onUpdate(float dt) {
 
         if (!Win || !Lose) {
+
             //Timer
             if (!Win) {
                 if (isTimerRunning) {
@@ -245,8 +262,15 @@ public class MainGameScene extends GameScene {
                             pickUpButtonPointerId = pointerId;
                             if (!wasPickUpButtonPressed) {
                                 isPickUpButtonPressed = true;
-                                handlePickUpOrDrop(); // Execute pick-up/drop logic
+                                handlePickUpOrDrop();
                                 wasPickUpButtonPressed = true; // Prevent spamming
+                            }
+                        }
+                        // Handle pause button interaction
+                        else if (Math.hypot(touchX - pauseButtonX, touchY - pauseButtonY) <= pauseButtonRadius && pauseButtonPointerId == -1) {
+                            if (!isPauseButtonPressed) { // Ensure this happens only once per press
+                                togglePause(); // Toggle pause state
+                                isPauseButtonPressed = true; // Mark as pressed
                             }
                         }
                         break;
@@ -283,7 +307,10 @@ public class MainGameScene extends GameScene {
                             pickUpButtonPointerId = -1;
                             isPickUpButtonPressed = false;
                             wasPickUpButtonPressed = false;
+                        } else if (Math.hypot(event.getX(pointerIndex) - pauseButtonX, event.getY(pointerIndex) - pauseButtonY) <= pauseButtonRadius) {
+                            isPauseButtonPressed = false; // Reset the pause button state
                         }
+
                         break;
                 }
             }
@@ -337,6 +364,7 @@ public class MainGameScene extends GameScene {
                 pressurePlate.onUpdate(dt);
             }
         }
+        if (isPaused) return;
     }
 
 
@@ -451,6 +479,20 @@ public class MainGameScene extends GameScene {
         if (Lose) {
             canvas.drawBitmap(_loseBitmap, 0, 0, null);
         }
+
+
+        // Draw the pause button
+        Paint pauseButtonPaint = new Paint();
+        pauseButtonPaint.setColor(isPaused ? Color.GREEN : Color.RED); // Green = Paused, Red = Running
+        pauseButtonPaint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(pauseButtonX, pauseButtonY, pauseButtonRadius, pauseButtonPaint);
+
+        // Add a pause/play icon
+        Paint icontextPaint = new Paint();
+        icontextPaint.setColor(Color.WHITE);
+        icontextPaint.setTextSize(50);
+        icontextPaint.setTextAlign(Paint.Align.CENTER);
+        canvas.drawText(isPaused ? "▶" : "||", pauseButtonX, pauseButtonY + 20, icontextPaint);
     }
 
     public List<Platform> getPlatforms() {
@@ -625,4 +667,10 @@ public class MainGameScene extends GameScene {
         //End Game Logic Here
         Lose = true;
     }
+
+    private void togglePause() {
+        isPaused = !isPaused; // Toggle pause state
+        GameActivity.instance.setTimeScale(isPaused ? 0 : 1); // Pause (0) or resume (1)
+    }
+
 }
