@@ -476,7 +476,7 @@ public class MainGameScene extends GameScene {
         Paint textPaint = new Paint();
         textPaint.setColor(Color.BLACK);
         textPaint.setTextSize(80);
-        canvas.drawText("Time: " + String.format("%.0f", timer) + "s", 1850, 100, textPaint);
+        canvas.drawText("Time: " + String.format("%.0f", timer) + "s", 1500, 100, textPaint);
 
         if (inventoryIcon != null) {
             // Draw the current inventory icon
