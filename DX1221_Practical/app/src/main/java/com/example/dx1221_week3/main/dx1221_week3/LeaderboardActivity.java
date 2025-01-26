@@ -13,15 +13,12 @@ import android.widget.TextView;
 import com.example.dx1221_week3.R;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class LeaderboardActivity extends Activity implements View.OnClickListener {
 
     private static final String PREFERENCES_NAME = "LeaderboardPrefs";
-    private static final String PLAYER_NAMES_KEY = "PlayerNames";
-    private static final String PLAYER_TIMES_KEY = "PlayerTimes";
+    private static final String LEADERBOARD_KEY = "Leaderboard";
 
     private Button backButton;
     private LinearLayout leaderboardEntriesContainer;
@@ -43,18 +40,12 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
         String playerName = intent.getStringExtra("PLAYER_NAME");
         int timeLeft = intent.getIntExtra("TIME_LEFT", -1);
 
-        // Debug logging
-        android.util.Log.d("MyTag", "Received Player Name: " + playerName);
-        android.util.Log.d("MyTag", "Received Time Left: " + timeLeft);
-
-        // Validate data and add to leaderboard
-        if (playerName != null && timeLeft != -1) {
+        // Add new player to the leaderboard if valid data is provided
+        if (playerName != null && timeLeft >= 0) {
             savePlayerData(playerName, timeLeft);
-        } else {
-            android.util.Log.d("MyTag", "Intent Extras Missing: PLAYER_NAME or TIME_LEFT is invalid.");
         }
 
-        // Load leaderboard data and display it
+        // Load and display leaderboard data
         loadLeaderboardData();
     }
 
@@ -71,44 +62,56 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
 
     private void savePlayerData(String playerName, int timeLeft) {
         SharedPreferences prefs = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
+        String leaderboardData = prefs.getString(LEADERBOARD_KEY, "");
 
-        // Get existing data
-        Set<String> playerNames = prefs.getStringSet(PLAYER_NAMES_KEY, new HashSet<>());
-        Set<String> playerTimes = prefs.getStringSet(PLAYER_TIMES_KEY, new HashSet<>());
-
-        // Add new data
-        playerNames.add(playerName);
-        playerTimes.add(String.valueOf(timeLeft));
+        // Append the new player's data in the format: "PlayerName|TimeLeft;"
+        String newEntry = playerName + "|" + timeLeft + ";";
+        leaderboardData += newEntry;
 
         // Save back to SharedPreferences
-        editor.putStringSet(PLAYER_NAMES_KEY, playerNames);
-        editor.putStringSet(PLAYER_TIMES_KEY, playerTimes);
-        editor.apply();
-
-        android.util.Log.d("MyTag", "Saved Player Data: Name=" + playerName + ", Time=" + timeLeft);
+        prefs.edit().putString(LEADERBOARD_KEY, leaderboardData).apply();
     }
 
     private void loadLeaderboardData() {
         SharedPreferences prefs = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
+        String leaderboardData = prefs.getString(LEADERBOARD_KEY, "");
 
-        Set<String> playerNames = prefs.getStringSet(PLAYER_NAMES_KEY, new HashSet<>());
-        Set<String> playerTimes = prefs.getStringSet(PLAYER_TIMES_KEY, new HashSet<>());
+        // Parse the leaderboard data
+        List<LeaderboardEntry> leaderboard = parseLeaderboardData(leaderboardData);
 
-        List<String> namesList = new ArrayList<>(playerNames);
-        List<String> timesList = new ArrayList<>(playerTimes);
+        // Clear existing entries in the UI
+        leaderboardEntriesContainer.removeAllViews();
 
-        for (int i = 0; i < namesList.size(); i++) {
-            String name = namesList.get(i);
-            String time = timesList.size() > i ? timesList.get(i) : "0";
-            addPlayerEntry(name, Integer.parseInt(time));
+        // Display leaderboard entries
+        for (LeaderboardEntry entry : leaderboard) {
+            addPlayerEntry(entry.playerName, entry.timeLeft);
+        }
+    }
+
+    private List<LeaderboardEntry> parseLeaderboardData(String data) {
+        List<LeaderboardEntry> leaderboard = new ArrayList<>();
+
+        if (!data.isEmpty()) {
+            // Split the data into individual entries
+            String[] entries = data.split(";");
+            for (String entry : entries) {
+                if (!entry.isEmpty()) {
+                    // Split each entry into name and time
+                    String[] parts = entry.split("\\|");
+                    if (parts.length == 2) {
+                        String playerName = parts[0];
+                        int timeLeft = Integer.parseInt(parts[1]);
+                        leaderboard.add(new LeaderboardEntry(playerName, timeLeft));
+                    }
+                }
+            }
         }
 
-        android.util.Log.d("MyTag", "Loaded Leaderboard Data: " + namesList + " " + timesList);
+        return leaderboard;
     }
 
     private void addPlayerEntry(String playerName, int timeLeft) {
-        // Create a leaderboard entry
+        // Create a new leaderboard entry
         LinearLayout entryLayout = new LinearLayout(this);
         entryLayout.setOrientation(LinearLayout.HORIZONTAL);
 
@@ -124,8 +127,16 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
         entryLayout.addView(timeLeftTextView);
 
         leaderboardEntriesContainer.addView(entryLayout);
+    }
 
-        android.util.Log.d("MyTag", "Added Player Entry: " + playerName + ", Time: " + timeLeft);
+    // Inner class to represent a leaderboard entry
+    private static class LeaderboardEntry {
+        String playerName;
+        int timeLeft;
+
+        LeaderboardEntry(String playerName, int timeLeft) {
+            this.playerName = playerName;
+            this.timeLeft = timeLeft;
+        }
     }
 }
-
