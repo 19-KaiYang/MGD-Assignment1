@@ -345,10 +345,12 @@ public class MainGameScene extends GameScene {
 
 
         // Handle joystick movement with weight-adjusted speed
-        if (joystick.isTouched() || joystick.isSticky()) {
-            float adjustedSpeed = 300 * speedFactor;
-            float deltaX = joystick.getHorizontalPercentage() * adjustedSpeed * dt;
-            player.setPositionX(player.getPositionX() + deltaX);
+        if (!player.ifPickup) {
+            if (joystick.isTouched() || joystick.isSticky()) {
+                float adjustedSpeed = 300 * speedFactor;
+                float deltaX = joystick.getHorizontalPercentage() * adjustedSpeed * dt;
+                player.setPositionX(player.getPositionX() + deltaX);
+            }
         }
 
         // Update other game logic

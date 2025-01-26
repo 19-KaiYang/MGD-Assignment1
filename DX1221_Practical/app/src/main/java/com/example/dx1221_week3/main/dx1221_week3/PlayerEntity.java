@@ -71,6 +71,16 @@ public class PlayerEntity extends GameEntity {
                 SensorEvent sensorEvent = GameActivity.instance.getSensorEvent();
                 _position.x += 1 * sensorEvent.values[1];
 
+                if (sensorEvent.values[1] < 0)
+                {
+                    // Tilted left
+                    isMovingRight = false;
+                }
+                else if (sensorEvent.values[1] > 0)
+                {
+                    // Tilted right
+                    isMovingRight = true;
+                }
             }
         }
         else
