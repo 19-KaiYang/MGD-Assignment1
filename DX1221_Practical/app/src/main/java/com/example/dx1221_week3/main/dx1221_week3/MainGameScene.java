@@ -78,7 +78,7 @@ public class MainGameScene extends GameScene {
     private int lives = 3;
 
     //Timer
-    private float timer = 5;
+    private float timer = 200;
     private float originalTime;
     private boolean isTimerRunning = true;
 
@@ -210,6 +210,9 @@ public class MainGameScene extends GameScene {
         } else if (Win) {
             GameActivity.instance.runOnUiThread(() -> {
                 Intent intent = new Intent(GameActivity.instance, WinPage.class);
+
+                intent.putExtra("TIME_LEFT", (int) timer);
+
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); // Reset the activity stack
                 GameActivity.instance.startActivity(intent);
                 GameActivity.instance.finishAffinity(); // Finish all activities in the stack

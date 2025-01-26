@@ -16,6 +16,9 @@ public class MainMenu extends Activity implements View.OnClickListener {
     private Button _helpButton;
     private Button _startButton;
 
+    private Button _leaderboardButton;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,6 +30,11 @@ public class MainMenu extends Activity implements View.OnClickListener {
 
         _startButton = findViewById(R.id.start_btn);
         _startButton.setOnClickListener(this);
+
+        // Initialize Leaderboard button
+        _leaderboardButton = findViewById(R.id.leaderboard_btn);
+        _leaderboardButton.setOnClickListener(this);
+
     }
 
     @Override
@@ -45,6 +53,9 @@ public class MainMenu extends Activity implements View.OnClickListener {
 
             // Finish MainMenu activity to prevent navigating back to it
             finish();
+        } else if (v == _leaderboardButton) {
+            // Start Leaderboard activity
+            startActivity(new Intent(this, LeaderboardActivity.class));
         }
     }
 }

@@ -6,14 +6,33 @@
     android:layout_height="match_parent"
     android:background="@drawable/win">
 
+    <!-- Name Input -->
+
+    <EditText
+        android:id="@+id/nameInput"
+        android:layout_width="389dp"
+        android:layout_height="49dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="200dp"
+        android:backgroundTint="@android:color/white"
+        android:hint="@string/title_name"
+        android:inputType="text"
+        android:textColor="@android:color/white"
+        android:textColorHint="@android:color/darker_gray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
     <Button
         android:id="@+id/back_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="136dp"
+        android:layout_marginBottom="36dp"
         android:text="@string/back_btn_text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.499"
         app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
