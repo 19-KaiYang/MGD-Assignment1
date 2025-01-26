@@ -396,17 +396,18 @@ public class MainGameScene extends GameScene {
 
         canvas.restore();
 
-        // Render joystick
-        Paint basePaint = new Paint();
-        basePaint.setColor(Color.GRAY);
-        basePaint.setStyle(Paint.Style.FILL);
+        if (!player.ifPickup) {
+            // Render joystick
+            Paint basePaint = new Paint();
+            basePaint.setColor(Color.GRAY);
+            basePaint.setStyle(Paint.Style.FILL);
 
-        Paint hatPaint = new Paint();
-        hatPaint.setColor(Color.BLUE);
-        hatPaint.setStyle(Paint.Style.FILL);
+            Paint hatPaint = new Paint();
+            hatPaint.setColor(Color.BLUE);
+            hatPaint.setStyle(Paint.Style.FILL);
 
-        joystick.draw(canvas, basePaint, hatPaint);
-
+            joystick.draw(canvas, basePaint, hatPaint);
+        }
 
         // Render jump button
         Paint jumpButtonPaint = new Paint();
@@ -483,6 +484,7 @@ public class MainGameScene extends GameScene {
                 {
                     if (!trashBin.isPickedUp()) {
                         trashBin.pickUp();
+                        player.ifPickup = true;
                         inventoryItem = trashBin;
                         inventoryIcon = trashBin.getIcon();
                         return;
@@ -506,6 +508,7 @@ public class MainGameScene extends GameScene {
 
             // Drop the inventory item near the player if not in range of a trash bin
             inventoryItem.drop(player.getPositionX(), player.getPositionY() + 100); // Drop near the player
+            player.ifPickup = false;
             inventoryItem = null;
             inventoryIcon = null;
         }

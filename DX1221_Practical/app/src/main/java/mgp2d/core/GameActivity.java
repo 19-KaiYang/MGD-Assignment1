@@ -55,8 +55,13 @@ Each GameEntity contains these methods:
 
 package mgp2d.core;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -65,13 +70,14 @@ import android.view.SurfaceView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
-public class GameActivity extends FragmentActivity {
+public class GameActivity extends FragmentActivity implements SensorEventListener {
 
     private static class UpdateThread extends Thread {
         public boolean _isRunning = true;
         public void terminate() { _isRunning = false; }
         public boolean isRunning() { return _isRunning; }
         private final SurfaceHolder _surfaceHolder;
+
 
         public UpdateThread(SurfaceView surfaceView) {
             _surfaceHolder = surfaceView.getHolder();
@@ -125,6 +131,18 @@ public class GameActivity extends FragmentActivity {
     private static MotionEvent _motionEvent = null;
     public MotionEvent getMotionEvent() { return _motionEvent; }
 
+    public SensorEvent getSensorEvent() {return _sensorEvent; }
+
+    private SensorManager _sensorManager;
+
+    private Sensor _accelerometer;
+
+    private static SensorEvent _sensorEvent = null;
+
+    private static int _currentSensorAccuracy = SensorManager.SENSOR_STATUS_ACCURACY_HIGH;
+
+    public boolean areSensorsWorking() {return _currentSensorAccuracy >= SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM;}
+
     private UpdateThread _updateThread;
 
     @Override
@@ -134,6 +152,10 @@ public class GameActivity extends FragmentActivity {
         SurfaceView surfaceView = new SurfaceView(this);
         setContentView(surfaceView);
         _updateThread = new UpdateThread(surfaceView);
+
+        _sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        _accelerometer = _sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        _sensorManager.registerListener(this, _accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -147,6 +169,7 @@ public class GameActivity extends FragmentActivity {
         super.onStart();
         if (!_updateThread.isRunning())
             _updateThread.start();
+        _sensorManager.registerListener(this, _accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -154,6 +177,7 @@ public class GameActivity extends FragmentActivity {
         super.onStop();
         _updateThread.terminate();
         GameScene.exitCurrent();
+        _sensorManager.unregisterListener(this);
     }
 
     @Override
@@ -161,5 +185,23 @@ public class GameActivity extends FragmentActivity {
         super.onPause();
         _updateThread.terminate();
         GameScene.exitCurrent();
+        _sensorManager.unregisterListener(this);
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        _sensorManager.registerListener(this, _accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        _sensorEvent = event;
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        _currentSensorAccuracy = accuracy;
     }
 }

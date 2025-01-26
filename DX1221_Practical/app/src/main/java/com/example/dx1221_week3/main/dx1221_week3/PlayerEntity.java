@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Matrix;
+import android.hardware.SensorEvent;
 
 import com.example.dx1221_week3.R;
 
@@ -29,6 +30,8 @@ public class PlayerEntity extends GameEntity {
 
     private float baseSpeed = 300f;
     private float currentSpeed = baseSpeed;
+
+    protected boolean ifPickup;
 
     protected boolean isMovingRight;
 
@@ -61,21 +64,34 @@ public class PlayerEntity extends GameEntity {
 
     @Override
     public void onUpdate(float dt) {
-        // Horizontal movement
-        Joystick joystick = ((MainGameScene) GameScene.getCurrent()).getJoystick();
-        if (joystick.isTouched()) {
-            // Calculate deltaX based on joystick input
-            float deltaX = joystick.getHorizontalPercentage() * 300 * dt;
 
-            // Update position
-            _position.x += deltaX;
+        if (ifPickup) {
+            if (GameActivity.instance.areSensorsWorking()) {
+                //Control player movement using accelerometer
+                SensorEvent sensorEvent = GameActivity.instance.getSensorEvent();
+                _position.x += 1 * sensorEvent.values[1];
 
-            // Calculate velocityX (remove dt since deltaX already factors it in)
-            velocityX = joystick.getHorizontalPercentage() * 300;
-        } else {
-            // No joystick input, velocity is zero
-            velocityX = 0;
+            }
         }
+        else
+        {
+            // Horizontal movement
+            Joystick joystick = ((MainGameScene) GameScene.getCurrent()).getJoystick();
+            if (joystick.isTouched()) {
+                // Calculate deltaX based on joystick input
+                float deltaX = joystick.getHorizontalPercentage() * 300 * dt;
+
+                // Update position
+                _position.x += deltaX;
+
+                // Calculate velocityX (remove dt since deltaX already factors it in)
+                velocityX = joystick.getHorizontalPercentage() * 300;
+            } else {
+                // No joystick input, velocity is zero
+                velocityX = 0;
+            }
+        }
+
 
         // Apply gravity
         if (!isOnPlatform) {
