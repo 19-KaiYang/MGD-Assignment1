@@ -23,8 +23,17 @@
         android:id="@+id/start_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="108dp"
+        android:layout_marginEnd="52dp"
         android:text="@string/start_btn_text"
+        app:layout_constraintBaseline_toBaselineOf="@+id/help_btn"
+        app:layout_constraintEnd_toEndOf="@+id/textView" />
+
+    <Button
+        android:id="@+id/leaderboard_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="180dp"
+        android:text="@string/leaderboard"
         app:layout_constraintBaseline_toBaselineOf="@+id/help_btn"
         app:layout_constraintEnd_toEndOf="@+id/textView" />
 
@@ -32,7 +41,7 @@
         android:id="@+id/help_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
+        android:layout_marginStart="52dp"
         android:text="@string/help_btn_text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/start_btn"

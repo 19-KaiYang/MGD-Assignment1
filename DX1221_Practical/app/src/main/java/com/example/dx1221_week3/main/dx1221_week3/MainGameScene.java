@@ -1,6 +1,7 @@
 package com.example.dx1221_week3.main.dx1221_week3;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -10,7 +11,6 @@ import android.media.MediaPlayer;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.MotionEvent;
-import android.util.Log;
 
 import com.example.dx1221_week3.R;
 
@@ -72,11 +72,14 @@ public class MainGameScene extends GameScene {
     private int jumpButtonPointerId = -1;
     private int pickUpButtonPointerId = -1;
 
+    private int pauseButtonPointerId = -1;
+
     //Lives
     private int lives = 3;
 
     //Timer
-    private float timer = 30;
+    private float timer = 200;
+    private float originalTime;
     private boolean isTimerRunning = true;
 
     //Audio
@@ -87,9 +90,16 @@ public class MainGameScene extends GameScene {
     //Haptic
     private Vibrator _vibration;
 
+
+    //Pause
+    private boolean isPaused = false;
+    private float pauseButtonX, pauseButtonY, pauseButtonRadius;
+    private boolean isPauseButtonPressed = false;
+
+
+
 //    private boolean CollisionTest = false;
 //    private float Test;
-
     @Override
     //On Start
     public void onCreate() {
@@ -97,6 +107,7 @@ public class MainGameScene extends GameScene {
 
         Win = false;
         Lose = false;
+        originalTime = timer;
 
         screenHeight = GameActivity.instance.getResources().getDisplayMetrics().heightPixels;
         screenWidth = GameActivity.instance.getResources().getDisplayMetrics().widthPixels;
@@ -177,167 +188,195 @@ public class MainGameScene extends GameScene {
         items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 10)); // Weight = 10kg
         items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
         items.add(new NonRecyclableObject(2500, screenHeight  - 850, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+
+
+
+        //Create Pause
+        pauseButtonRadius = 100;
+        pauseButtonX = screenWidth - pauseButtonRadius - 50;
+        pauseButtonY = pauseButtonRadius + 50;
     }
 
     @Override
     public void onUpdate(float dt) {
 
-        if (!Win || !Lose) {
-            //Timer
-            if (!Win) {
-                if (isTimerRunning) {
-                    timer -= dt;
-                    if (timer <= 0) {
-                        isTimerRunning = false;
-                        timer = 0;
+        if (Lose) {
+            GameActivity.instance.runOnUiThread(() -> {
+                Intent intent = new Intent(GameActivity.instance, LosePage.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); // Reset the activity stack
+                GameActivity.instance.startActivity(intent);
+                GameActivity.instance.finishAffinity(); // Finish all activities in the stack
+            });
+        } else if (Win) {
+            GameActivity.instance.runOnUiThread(() -> {
+                Intent intent = new Intent(GameActivity.instance, WinPage.class);
 
-                        Lose = true;
+                intent.putExtra("TIME_LEFT", (int) timer);
+
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); // Reset the activity stack
+                GameActivity.instance.startActivity(intent);
+                GameActivity.instance.finishAffinity(); // Finish all activities in the stack
+            });
+        } else {
+            // Timer logic
+            if (timer <= 0) {
+                Lose = true; // Trigger Lose state
+            } else {
+                timer -= dt; // Decrement timer
+            }
+        }
+
+        checkWin();
+
+        //Check Pressure plate Collisions
+        handlePressurePlateCollision();
+
+        for (Item item : items)
+        {
+            item.isColliding = checkCollision(player, item);
+        }
+
+        for (TrashBin trashBin : trashBins)
+        {
+            trashBin.isColliding = checkCollision(player, trashBin);
+        }
+
+        MotionEvent event = GameActivity.instance.getMotionEvent();
+        if (event != null) {
+            int action = event.getActionMasked();
+            int pointerIndex = event.getActionIndex();
+            int pointerId = event.getPointerId(pointerIndex);
+            float touchX = event.getX(pointerIndex);
+            float touchY = event.getY(pointerIndex);
+
+            switch (action) {
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_POINTER_DOWN:
+                    // Handle joystick
+                    if (Math.hypot(touchX - joystick.getCenterX(), touchY - joystick.getCenterY()) <= joystick.getBaseRadius() && joystickPointerId == -1) {
+                        joystickPointerId = pointerId;
+                        joystick.setTouched(true);
+                        joystick.update(touchX, touchY);
+
+                        // Determine left or right movement
+                        if (touchX < joystick.getCenterX()) {
+                            player.isMovingRight = false;
+                        } else if (touchX > joystick.getCenterX()) {
+                            player.isMovingRight = true;
+                        }
                     }
-                }
-            }
+                    // Handle jump button
+                    else if (Math.hypot(touchX - jumpButtonX, touchY - jumpButtonY) <= jumpButtonRadius && jumpButtonPointerId == -1) {
+                        jumpButtonPointerId = pointerId;
+                        isJumpButtonPressed = true;
+                    }
+                    // Handle pick-up/drop button
+                    else if (Math.hypot(touchX - pickUpButtonX, touchY - pickUpButtonY) <= pickUpButtonRadius && pickUpButtonPointerId == -1) {
+                        pickUpButtonPointerId = pointerId;
+                        if (!wasPickUpButtonPressed) {
+                            isPickUpButtonPressed = true;
+                            handlePickUpOrDrop();
+                            wasPickUpButtonPressed = true; // Prevent spamming
+                        }
+                    }
+                    // Handle pause button interaction
+                    else if (Math.hypot(touchX - pauseButtonX, touchY - pauseButtonY) <= pauseButtonRadius && pauseButtonPointerId == -1) {
+                        if (!isPauseButtonPressed) { // Ensure this happens only once per press
+                            togglePause(); // Toggle pause state
+                            isPauseButtonPressed = true; // Mark as pressed
+                        }
+                    }
+                    break;
 
-            checkWin();
+                case MotionEvent.ACTION_MOVE:
+                    for (int i = 0; i < event.getPointerCount(); i++) {
+                        int movePointerId = event.getPointerId(i);
+                        float moveTouchX = event.getX(i);
+                        float moveTouchY = event.getY(i);
 
-            //Check Pressure plate Collisions
-            handlePressurePlateCollision();
+                        if (movePointerId == joystickPointerId) {
+                            joystick.update(moveTouchX, moveTouchY);
 
-            for (Item item : items)
-            {
-                item.isColliding = checkCollision(player, item);
-            }
-
-            for (TrashBin trashBin : trashBins)
-            {
-                trashBin.isColliding = checkCollision(player, trashBin);
-            }
-
-            MotionEvent event = GameActivity.instance.getMotionEvent();
-            if (event != null) {
-                int action = event.getActionMasked();
-                int pointerIndex = event.getActionIndex();
-                int pointerId = event.getPointerId(pointerIndex);
-                float touchX = event.getX(pointerIndex);
-                float touchY = event.getY(pointerIndex);
-
-                switch (action) {
-                    case MotionEvent.ACTION_DOWN:
-                    case MotionEvent.ACTION_POINTER_DOWN:
-                        // Handle joystick
-                        if (Math.hypot(touchX - joystick.getCenterX(), touchY - joystick.getCenterY()) <= joystick.getBaseRadius() && joystickPointerId == -1) {
-                            joystickPointerId = pointerId;
-                            joystick.setTouched(true);
-                            joystick.update(touchX, touchY);
-
-                            // Determine left or right movement
-                            if (touchX < joystick.getCenterX()) {
+                            // Update left or right movement based on the joystick position
+                            if (moveTouchX < joystick.getCenterX()) {
                                 player.isMovingRight = false;
-                            } else if (touchX > joystick.getCenterX()) {
+                            } else if (moveTouchX > joystick.getCenterX()) {
                                 player.isMovingRight = true;
                             }
                         }
-                        // Handle jump button
-                        else if (Math.hypot(touchX - jumpButtonX, touchY - jumpButtonY) <= jumpButtonRadius && jumpButtonPointerId == -1) {
-                            jumpButtonPointerId = pointerId;
-                            isJumpButtonPressed = true;
-                        }
-                        // Handle pick-up/drop button
-                        else if (Math.hypot(touchX - pickUpButtonX, touchY - pickUpButtonY) <= pickUpButtonRadius && pickUpButtonPointerId == -1) {
-                            pickUpButtonPointerId = pointerId;
-                            if (!wasPickUpButtonPressed) {
-                                isPickUpButtonPressed = true;
-                                handlePickUpOrDrop(); // Execute pick-up/drop logic
-                                wasPickUpButtonPressed = true; // Prevent spamming
-                            }
-                        }
-                        break;
+                    }
+                    break;
 
-                    case MotionEvent.ACTION_MOVE:
-                        for (int i = 0; i < event.getPointerCount(); i++) {
-                            int movePointerId = event.getPointerId(i);
-                            float moveTouchX = event.getX(i);
-                            float moveTouchY = event.getY(i);
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_POINTER_UP:
+                    if (pointerId == joystickPointerId) {
+                        joystickPointerId = -1;
+                        joystick.setTouched(false);
+                        joystick.reset();
+                    } else if (pointerId == jumpButtonPointerId) {
+                        jumpButtonPointerId = -1;
+                        isJumpButtonPressed = false;
+                    } else if (pointerId == pickUpButtonPointerId) {
+                        pickUpButtonPointerId = -1;
+                        isPickUpButtonPressed = false;
+                        wasPickUpButtonPressed = false;
+                    } else if (Math.hypot(event.getX(pointerIndex) - pauseButtonX, event.getY(pointerIndex) - pauseButtonY) <= pauseButtonRadius) {
+                        isPauseButtonPressed = false; // Reset the pause button state
+                    }
 
-                            if (movePointerId == joystickPointerId) {
-                                joystick.update(moveTouchX, moveTouchY);
-
-                                // Update left or right movement based on the joystick position
-                                if (moveTouchX < joystick.getCenterX()) {
-                                    player.isMovingRight = false;
-                                } else if (moveTouchX > joystick.getCenterX()) {
-                                    player.isMovingRight = true;
-                                }
-                            }
-                        }
-                        break;
-
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_POINTER_UP:
-                        if (pointerId == joystickPointerId) {
-                            joystickPointerId = -1;
-                            joystick.setTouched(false);
-                            joystick.reset();
-                        } else if (pointerId == jumpButtonPointerId) {
-                            jumpButtonPointerId = -1;
-                            isJumpButtonPressed = false;
-                        } else if (pointerId == pickUpButtonPointerId) {
-                            pickUpButtonPointerId = -1;
-                            isPickUpButtonPressed = false;
-                            wasPickUpButtonPressed = false;
-                        }
-                        break;
-                }
-            }
-
-
-            // Calculate speed factor based on inventory weight
-            float speedFactor = 1.0f;
-            if (inventoryItem != null) {
-                float maxWeight = 100.0f;
-                speedFactor = Math.max(0.5f, 1.0f - (inventoryItem.getWeight() / maxWeight));
-            }
-
-
-            // Handle jumping
-            if (isJumpButtonPressed && player.isOnPlatform()) {
-                player.jump();
-                _jumpSFX.start();
-                isJumpButtonPressed = false;
-            }
-
-
-            // Handle joystick movement with weight-adjusted speed
-            if (joystick.isTouched() || joystick.isSticky()) {
-                float adjustedSpeed = 300 * speedFactor;
-                float deltaX = joystick.getHorizontalPercentage() * adjustedSpeed * dt;
-                player.setPositionX(player.getPositionX() + deltaX);
-            }
-
-            // Update other game logic
-            float playerX = player.getPositionX();
-            cameraX = playerX - screenWidth / 2f;
-            cameraX = Math.max(0, Math.min(cameraX, totalWorldWidth - screenWidth));
-
-            for (GameEntity entity : _gameEntities) {
-                entity.onUpdate(dt);
-            }
-
-            for (Platform platform : platforms) {
-                platform.onUpdate(dt);
-            }
-
-            for (TrashBin trashBin : trashBins) {
-                trashBin.onUpdate(dt);
-            }
-
-            for (Item item : items) {
-                item.onUpdate(dt);
-            }
-
-            for (PressurePlate pressurePlate : pressurePlates) {
-                pressurePlate.onUpdate(dt);
+                    break;
             }
         }
-    }
+
+        // Calculate speed factor based on inventory weight
+        float speedFactor = 1.0f;
+        if (inventoryItem != null) {
+            float maxWeight = 100.0f;
+            speedFactor = Math.max(0.5f, 1.0f - (inventoryItem.getWeight() / maxWeight));
+        }
+
+
+        // Handle jumping
+        if (isJumpButtonPressed && player.isOnPlatform()) {
+            player.jump();
+            _jumpSFX.start();
+            isJumpButtonPressed = false;
+        }
+
+
+        // Handle joystick movement with weight-adjusted speed
+        if (joystick.isTouched() || joystick.isSticky()) {
+            float adjustedSpeed = 300 * speedFactor;
+            float deltaX = joystick.getHorizontalPercentage() * adjustedSpeed * dt;
+            player.setPositionX(player.getPositionX() + deltaX);
+        }
+
+        // Update other game logic
+        float playerX = player.getPositionX();
+        cameraX = playerX - screenWidth / 2f;
+        cameraX = Math.max(0, Math.min(cameraX, totalWorldWidth - screenWidth));
+
+        for (GameEntity entity : _gameEntities) {
+            entity.onUpdate(dt);
+        }
+
+        for (Platform platform : platforms) {
+            platform.onUpdate(dt);
+        }
+
+        for (TrashBin trashBin : trashBins) {
+            trashBin.onUpdate(dt);
+        }
+
+        for (Item item : items) {
+            item.onUpdate(dt);
+        }
+
+        for (PressurePlate pressurePlate : pressurePlates) {
+            pressurePlate.onUpdate(dt);
+        }
+    if (isPaused) return;
+}
 
 
     @Override
@@ -445,12 +484,36 @@ public class MainGameScene extends GameScene {
                     new android.graphics.RectF(inventoryX, inventoryY, inventoryX + inventoryWidth, inventoryY + inventoryHeight), null);
         }
 
-        if (Win) {
-            canvas.drawBitmap(_winBitmap, 0, 0, null);
-        }
 
-        if (Lose) {
-            canvas.drawBitmap(_loseBitmap, 0, 0, null);
+
+
+        // Draw the pause button
+        Paint pauseButtonPaint = new Paint();
+        pauseButtonPaint.setColor(isPaused ? Color.GREEN : Color.RED); // Green = Paused, Red = Running
+        pauseButtonPaint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(pauseButtonX, pauseButtonY, pauseButtonRadius, pauseButtonPaint);
+
+        // Add a pause/play icon
+        Paint icontextPaint = new Paint();
+        icontextPaint.setColor(Color.WHITE);
+        icontextPaint.setTextSize(50);
+        icontextPaint.setTextAlign(Paint.Align.CENTER);
+        canvas.drawText(isPaused ? "▶" : "||", pauseButtonX, pauseButtonY + 20, icontextPaint);
+
+        // Draw the "PAUSED" overlay if paused
+        if (isPaused) {
+            // Draw a black rectangle covering the entire screen
+            Paint overlayPaint = new Paint();
+            overlayPaint.setColor(Color.BLACK);
+            overlayPaint.setAlpha(150); // Semi-transparent
+            canvas.drawRect(0, 0, screenWidth, screenHeight, overlayPaint);
+
+            // Draw "PAUSED" text in the center
+            Paint pausetextPaint = new Paint();
+            pausetextPaint.setColor(Color.RED);
+            pausetextPaint.setTextSize(100);
+            pausetextPaint.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText("PAUSED", screenWidth / 2f, screenHeight / 2f, pausetextPaint);
         }
     }
 
@@ -628,4 +691,10 @@ public class MainGameScene extends GameScene {
         //End Game Logic Here
         Lose = true;
     }
+
+    private void togglePause() {
+        isPaused = !isPaused; // Toggle pause state
+        GameActivity.instance.setTimeScale(isPaused ? 0 : 1); // Pause (0) or resume (1)
+    }
+
 }
