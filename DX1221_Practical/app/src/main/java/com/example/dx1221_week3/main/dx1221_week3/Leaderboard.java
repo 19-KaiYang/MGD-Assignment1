@@ -15,7 +15,7 @@ import com.example.dx1221_week3.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LeaderboardActivity extends Activity implements View.OnClickListener {
+public class Leaderboard extends Activity implements View.OnClickListener {
 
     private static final String PREFERENCES_NAME = "LeaderboardPrefs";
     private static final String LEADERBOARD_KEY = "Leaderboard";
@@ -28,7 +28,7 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.leaderboard);
 
-      
+
         backButton = findViewById(R.id.back_btn);
         backButton.setOnClickListener(this);
 
@@ -81,9 +81,11 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
         // Clear existing entries in the UI
         leaderboardEntriesContainer.removeAllViews();
 
-        // Display leaderboard entries
-        for (LeaderboardEntry entry : leaderboard) {
-            addPlayerEntry(entry.playerName, entry.timeLeft);
+
+        for (int i = 0; i < leaderboard.size(); i++) {
+            LeaderboardEntry entry = leaderboard.get(i);
+            int rank = i + 1;
+            addPlayerEntry(rank, entry.playerName, entry.timeLeft);
         }
     }
 
@@ -91,11 +93,11 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
         List<LeaderboardEntry> leaderboard = new ArrayList<>();
 
         if (!data.isEmpty()) {
-            // Split the data into individual entries
+
             String[] entries = data.split(";");
             for (String entry : entries) {
                 if (!entry.isEmpty()) {
-                    // Split each entry into name and time
+
                     String[] parts = entry.split("\\|");
                     if (parts.length == 2) {
                         String playerName = parts[0];
@@ -106,27 +108,44 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
             }
         }
 
+        // Sort the leaderboard by ascending order
+        leaderboard.sort((entry1, entry2) -> Integer.compare(entry2.timeLeft, entry1.timeLeft));
+
         return leaderboard;
     }
 
-    private void addPlayerEntry(String playerName, int timeLeft) {
+    private void addPlayerEntry(int rank, String playerName, int timeLeft) {
         // Create a new leaderboard entry
         LinearLayout entryLayout = new LinearLayout(this);
         entryLayout.setOrientation(LinearLayout.HORIZONTAL);
 
+        // Number Placement
+        TextView rankTextView = new TextView(this);
+        rankTextView.setText(rank + ". ");
+        rankTextView.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        // Player Name
         TextView playerNameTextView = new TextView(this);
         playerNameTextView.setText(playerName);
-        playerNameTextView.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+        playerNameTextView.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
 
+        // Time Left
         TextView timeLeftTextView = new TextView(this);
         timeLeftTextView.setText(timeLeft + "s");
-        timeLeftTextView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        timeLeftTextView.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
+
+        entryLayout.addView(rankTextView);
         entryLayout.addView(playerNameTextView);
         entryLayout.addView(timeLeftTextView);
 
+        // Add the entry to the leaderboard container
         leaderboardEntriesContainer.addView(entryLayout);
     }
+
 
     private static class LeaderboardEntry {
         String playerName;

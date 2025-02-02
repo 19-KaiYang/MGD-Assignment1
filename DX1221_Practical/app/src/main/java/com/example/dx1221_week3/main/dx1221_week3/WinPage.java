@@ -47,7 +47,7 @@ public class WinPage extends Activity implements View.OnClickListener {
         String playerName = _nameInput.getText().toString().trim();
         if (!playerName.isEmpty()) {
             Log.d("MyTag", "Saving Player Name and Time: Name=" + playerName + ", Time=" + _timeLeft);
-            Intent intent = new Intent(this, LeaderboardActivity.class);
+            Intent intent = new Intent(this, Leaderboard.class);
             intent.putExtra("PLAYER_NAME", playerName);
             intent.putExtra("TIME_LEFT", _timeLeft);
             startActivityForResult(intent, REQUEST_CODE_LEADERBOARD);
@@ -60,7 +60,6 @@ public class WinPage extends Activity implements View.OnClickListener {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_LEADERBOARD && resultCode == RESULT_OK) {
-            Log.d("MyTag", "Returned from LeaderboardActivity successfully.");
             Toast.makeText(this, "Leaderboard updated!", Toast.LENGTH_SHORT).show();
             finish();
         }

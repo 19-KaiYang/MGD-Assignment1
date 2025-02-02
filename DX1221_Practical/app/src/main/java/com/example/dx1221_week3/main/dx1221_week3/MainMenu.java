@@ -55,7 +55,7 @@ public class MainMenu extends Activity implements View.OnClickListener {
             finish();
         } else if (v == _leaderboardButton) {
             // Start Leaderboard activity
-            startActivity(new Intent(this, LeaderboardActivity.class));
+            startActivity(new Intent(this, Leaderboard.class));
         }
     }
 }
