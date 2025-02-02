@@ -10,6 +10,7 @@ import android.graphics.Paint;
 import android.media.MediaPlayer;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.example.dx1221_week3.R;
@@ -96,9 +97,16 @@ public class MainGameScene extends GameScene {
     private float pauseButtonX, pauseButtonY, pauseButtonRadius;
     private boolean isPauseButtonPressed = false;
 
+    //Volume Slider
+    private float volumeSliderX, volumeSliderY, volumeSliderWidth, volumeSliderHeight;
+    private float volumeLevel = 0.2f;
+    private int volumeSliderPointerId = -1;
+    private boolean isVolumeSliderVisible = false;
 
 
-//    private boolean CollisionTest = false;
+
+
+    //    private boolean CollisionTest = false;
 //    private float Test;
     @Override
     //On Start
@@ -114,6 +122,13 @@ public class MainGameScene extends GameScene {
 
         // Define world size
         totalWorldWidth = screenWidth * 2f;
+
+        //Create Slider
+        volumeSliderWidth = 400;
+        volumeSliderHeight = 40;
+        volumeSliderX = (screenWidth - volumeSliderWidth) / 2f;
+        volumeSliderY = screenHeight / 2f + 200;
+
 
         // Load background
         Bitmap bmp = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.gamescene);
@@ -276,14 +291,14 @@ public class MainGameScene extends GameScene {
                         if (!wasPickUpButtonPressed) {
                             isPickUpButtonPressed = true;
                             handlePickUpOrDrop();
-                            wasPickUpButtonPressed = true; // Prevent spamming
+                            wasPickUpButtonPressed = true;
                         }
                     }
                     // Handle pause button interaction
                     else if (Math.hypot(touchX - pauseButtonX, touchY - pauseButtonY) <= pauseButtonRadius && pauseButtonPointerId == -1) {
-                        if (!isPauseButtonPressed) { // Ensure this happens only once per press
-                            togglePause(); // Toggle pause state
-                            isPauseButtonPressed = true; // Mark as pressed
+                        if (!isPauseButtonPressed) {
+                            togglePause();
+                            isPauseButtonPressed = true;
                         }
                     }
                     break;
@@ -321,12 +336,61 @@ public class MainGameScene extends GameScene {
                         isPickUpButtonPressed = false;
                         wasPickUpButtonPressed = false;
                     } else if (Math.hypot(event.getX(pointerIndex) - pauseButtonX, event.getY(pointerIndex) - pauseButtonY) <= pauseButtonRadius) {
-                        isPauseButtonPressed = false; // Reset the pause button state
+                        isPauseButtonPressed = false;
                     }
 
                     break;
             }
         }
+
+        if (isPaused) {
+            event = GameActivity.instance.getMotionEvent();
+            if (event != null) {
+                int action = event.getActionMasked();
+                int pointerIndex = event.getActionIndex();
+                int pointerId = event.getPointerId(pointerIndex);
+                float touchX = event.getX(pointerIndex);
+                float touchY = event.getY(pointerIndex);
+
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_POINTER_DOWN:
+                        if (touchX >= volumeSliderX - 35 && touchX <= volumeSliderX + volumeSliderWidth + 35 &&
+                                touchY >= volumeSliderY - 35 && touchY <= volumeSliderY + volumeSliderHeight + 35) {
+
+                            volumeSliderPointerId = pointerId;
+
+                        }
+                        break;
+
+                    case MotionEvent.ACTION_MOVE:
+                        if (volumeSliderPointerId != -1 && pointerId == volumeSliderPointerId) {
+
+                            float relativeX = Math.max(volumeSliderX, Math.min(touchX, volumeSliderX + volumeSliderWidth));
+                            volumeLevel = (relativeX - volumeSliderX) / volumeSliderWidth;
+
+                            // apply new volume level
+                            _bgm.setVolume(volumeLevel, volumeLevel);
+                            _jumpSFX.setVolume(volumeLevel, volumeLevel);
+                            _pressurePlateSFX.setVolume(volumeLevel, volumeLevel);
+
+
+                        }
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_POINTER_UP:
+                        if (pointerId == volumeSliderPointerId) {
+
+                            volumeSliderPointerId = -1;
+                        }
+                        break;
+                }
+            }
+        }
+
+
+
 
         // Calculate speed factor based on inventory weight
         float speedFactor = 1.0f;
@@ -504,18 +568,37 @@ public class MainGameScene extends GameScene {
 
         // Draw the "PAUSED" overlay if paused
         if (isPaused) {
-            // Draw a black rectangle covering the entire screen
+
             Paint overlayPaint = new Paint();
             overlayPaint.setColor(Color.BLACK);
             overlayPaint.setAlpha(150); // Semi-transparent
             canvas.drawRect(0, 0, screenWidth, screenHeight, overlayPaint);
 
-            // Draw "PAUSED" text in the center
+            // Draw "PAUSED" text
             Paint pausetextPaint = new Paint();
             pausetextPaint.setColor(Color.RED);
             pausetextPaint.setTextSize(100);
             pausetextPaint.setTextAlign(Paint.Align.CENTER);
             canvas.drawText("PAUSED", screenWidth / 2f, screenHeight / 2f, pausetextPaint);
+
+            // Draw volume slider background
+            Paint sliderBgPaint = new Paint();
+            sliderBgPaint.setColor(Color.GRAY);
+            sliderBgPaint.setStyle(Paint.Style.FILL);
+            canvas.drawRect(volumeSliderX, volumeSliderY, volumeSliderX + volumeSliderWidth, volumeSliderY + volumeSliderHeight, sliderBgPaint);
+
+            // Draw volume indicator
+            Paint sliderIndicatorPaint = new Paint();
+            sliderIndicatorPaint.setColor(Color.GREEN);
+            float indicatorX = volumeSliderX + (volumeLevel * volumeSliderWidth);
+            canvas.drawRect(indicatorX - 10, volumeSliderY, indicatorX + 10, volumeSliderY + volumeSliderHeight, sliderIndicatorPaint);
+
+            // Draw volume label
+            Paint volumetextPaint = new Paint();
+            volumetextPaint.setColor(Color.WHITE);
+            volumetextPaint.setTextSize(50);
+            volumetextPaint.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText("Volume", screenWidth / 2f, volumeSliderY - 30, volumetextPaint);
         }
     }
 
@@ -696,6 +779,7 @@ public class MainGameScene extends GameScene {
 
     private void togglePause() {
         isPaused = !isPaused; // Toggle pause state
+        isVolumeSliderVisible = isPaused;
         GameActivity.instance.setTimeScale(isPaused ? 0 : 1); // Pause (0) or resume (1)
     }
 

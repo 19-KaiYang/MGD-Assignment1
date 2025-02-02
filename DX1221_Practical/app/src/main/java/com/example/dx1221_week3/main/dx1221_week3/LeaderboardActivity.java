@@ -28,7 +28,7 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.leaderboard);
 
-        // Initialize back button
+      
         backButton = findViewById(R.id.back_btn);
         backButton.setOnClickListener(this);
 
@@ -40,19 +40,19 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
         String playerName = intent.getStringExtra("PLAYER_NAME");
         int timeLeft = intent.getIntExtra("TIME_LEFT", -1);
 
-        // Add new player to the leaderboard if valid data is provided
+
         if (playerName != null && timeLeft >= 0) {
             savePlayerData(playerName, timeLeft);
         }
 
-        // Load and display leaderboard data
+        // Load and display
         loadLeaderboardData();
     }
 
     @Override
     public void onClick(View v) {
         if (v == backButton) {
-            // Navigate back to MainMenu
+
             Intent intent = new Intent(this, MainMenu.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
@@ -68,7 +68,7 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
         String newEntry = playerName + "|" + timeLeft + ";";
         leaderboardData += newEntry;
 
-        // Save back to SharedPreferences
+        // Save to SharedPreferences
         prefs.edit().putString(LEADERBOARD_KEY, leaderboardData).apply();
     }
 
@@ -76,7 +76,6 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
         SharedPreferences prefs = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
         String leaderboardData = prefs.getString(LEADERBOARD_KEY, "");
 
-        // Parse the leaderboard data
         List<LeaderboardEntry> leaderboard = parseLeaderboardData(leaderboardData);
 
         // Clear existing entries in the UI
@@ -129,7 +128,6 @@ public class LeaderboardActivity extends Activity implements View.OnClickListene
         leaderboardEntriesContainer.addView(entryLayout);
     }
 
-    // Inner class to represent a leaderboard entry
     private static class LeaderboardEntry {
         String playerName;
         int timeLeft;
