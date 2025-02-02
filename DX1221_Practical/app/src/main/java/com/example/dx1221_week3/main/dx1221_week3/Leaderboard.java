@@ -21,6 +21,9 @@ public class Leaderboard extends Activity implements View.OnClickListener {
     private static final String LEADERBOARD_KEY = "Leaderboard";
 
     private Button backButton;
+
+    private Button clearButton;
+
     private LinearLayout leaderboardEntriesContainer;
 
     @Override
@@ -31,6 +34,9 @@ public class Leaderboard extends Activity implements View.OnClickListener {
 
         backButton = findViewById(R.id.back_btn);
         backButton.setOnClickListener(this);
+
+        clearButton = findViewById(R.id.clear_btn);
+        clearButton.setOnClickListener(this);
 
         // Initialize leaderboard container
         leaderboardEntriesContainer = findViewById(R.id.leaderboardEntriesContainer);
@@ -45,7 +51,7 @@ public class Leaderboard extends Activity implements View.OnClickListener {
             savePlayerData(playerName, timeLeft);
         }
 
-        // Load and display
+        // Load then display
         loadLeaderboardData();
     }
 
@@ -57,6 +63,8 @@ public class Leaderboard extends Activity implements View.OnClickListener {
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
             finish();
+        } else if (v == clearButton) {
+            clearLeaderboard();
         }
     }
 
@@ -64,7 +72,7 @@ public class Leaderboard extends Activity implements View.OnClickListener {
         SharedPreferences prefs = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
         String leaderboardData = prefs.getString(LEADERBOARD_KEY, "");
 
-        // Append the new player's data in the format: "PlayerName|TimeLeft;"
+
         String newEntry = playerName + "|" + timeLeft + ";";
         leaderboardData += newEntry;
 
@@ -146,6 +154,14 @@ public class Leaderboard extends Activity implements View.OnClickListener {
         leaderboardEntriesContainer.addView(entryLayout);
     }
 
+    private void clearLeaderboard() {
+        SharedPreferences prefs = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
+        prefs.edit().remove(LEADERBOARD_KEY).apply();
+
+        leaderboardEntriesContainer.removeAllViews();
+
+    }
+
 
     private static class LeaderboardEntry {
         String playerName;
@@ -156,4 +172,6 @@ public class Leaderboard extends Activity implements View.OnClickListener {
             this.timeLeft = timeLeft;
         }
     }
+
+
 }
