@@ -37,6 +37,9 @@ public class MainGameScene extends GameScene {
 
     private Bitmap pauseButtonBitmap;
 
+    private Bitmap jumpButtonBitmap;
+
+
     private Boolean Win;
 
     private Boolean Lose;
@@ -132,6 +135,9 @@ public class MainGameScene extends GameScene {
         volumeSliderY = screenHeight / 2f + 200;
 
         pauseButtonBitmap = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.pause);
+
+        jumpButtonBitmap = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.jumpicon);
+
 
 
         // Load background
@@ -518,11 +524,17 @@ public class MainGameScene extends GameScene {
             joystick.draw(canvas, basePaint, hatPaint);
         }
 
-        // Render jump button
-        Paint jumpButtonPaint = new Paint();
-        jumpButtonPaint.setColor(Color.RED);
-        jumpButtonPaint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(jumpButtonX, jumpButtonY, jumpButtonRadius, jumpButtonPaint);
+        // Draw black circular background
+        Paint jumpButtonBgPaint = new Paint();
+        jumpButtonBgPaint.setColor(Color.BLACK);
+        jumpButtonBgPaint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(jumpButtonX, jumpButtonY, jumpButtonRadius + 10, jumpButtonBgPaint);
+
+
+        canvas.drawBitmap(jumpButtonBitmap, jumpButtonX - (jumpButtonBitmap.getWidth() / 2),
+                jumpButtonY - (jumpButtonBitmap.getHeight() / 2), null);
+
+
 
         // Render pick-up/drop button
         Paint pickUpButtonPaint = new Paint();
