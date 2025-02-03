@@ -35,6 +35,8 @@ public class MainGameScene extends GameScene {
     private Bitmap _winBitmap;
     private Bitmap _loseBitmap;
 
+    private Bitmap pauseButtonBitmap;
+
     private Boolean Win;
 
     private Boolean Lose;
@@ -128,6 +130,8 @@ public class MainGameScene extends GameScene {
         volumeSliderHeight = 40;
         volumeSliderX = (screenWidth - volumeSliderWidth) / 2f;
         volumeSliderY = screenHeight / 2f + 200;
+
+        pauseButtonBitmap = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.pause);
 
 
         // Load background
@@ -355,8 +359,8 @@ public class MainGameScene extends GameScene {
                 switch (action) {
                     case MotionEvent.ACTION_DOWN:
                     case MotionEvent.ACTION_POINTER_DOWN:
-                        if (touchX >= volumeSliderX - 35 && touchX <= volumeSliderX + volumeSliderWidth + 35 &&
-                                touchY >= volumeSliderY - 35 && touchY <= volumeSliderY + volumeSliderHeight + 35) {
+                        if (touchX >= volumeSliderX - 45 && touchX <= volumeSliderX + volumeSliderWidth + 45 &&
+                                touchY >= volumeSliderY - 45 && touchY <= volumeSliderY + volumeSliderHeight + 45) {
 
                             volumeSliderPointerId = pointerId;
 
@@ -553,18 +557,10 @@ public class MainGameScene extends GameScene {
 
 
 
-        // Draw the pause button
-        Paint pauseButtonPaint = new Paint();
-        pauseButtonPaint.setColor(isPaused ? Color.GREEN : Color.RED); // Green = Paused, Red = Running
-        pauseButtonPaint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(pauseButtonX, pauseButtonY, pauseButtonRadius, pauseButtonPaint);
+        // Draw the pause button as an image
+        canvas.drawBitmap(pauseButtonBitmap, pauseButtonX - (pauseButtonBitmap.getWidth() / 2),
+                pauseButtonY - (pauseButtonBitmap.getHeight() / 2), null);
 
-        // Add a pause/play icon
-        Paint icontextPaint = new Paint();
-        icontextPaint.setColor(Color.WHITE);
-        icontextPaint.setTextSize(50);
-        icontextPaint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText(isPaused ? "▶" : "||", pauseButtonX, pauseButtonY + 20, icontextPaint);
 
         // Draw the "PAUSED" overlay if paused
         if (isPaused) {
