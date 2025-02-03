@@ -21,7 +21,7 @@ public class PlayerEntity extends GameEntity {
     private float velocityY = 0;
 
     private float velocityX = 0;
-    private final float gravity = 500;
+    private final float gravity = 600;
     private final float jumpVelocity = -500;
     private boolean isOnPlatform = false;
 

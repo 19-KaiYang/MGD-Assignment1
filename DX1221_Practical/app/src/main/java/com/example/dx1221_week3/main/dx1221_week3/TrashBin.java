@@ -78,7 +78,7 @@ public class TrashBin extends Item {
                 Paint textPaint = new Paint();
                 textPaint.setColor(Color.WHITE);
                 textPaint.setTextSize(30);
-                canvas.drawText(currentWeight + " kg", _position.x, _position.y - 10, textPaint); // Display weight
+                canvas.drawText(currentWeight + " kg", _position.x + 30, _position.y - 10, textPaint); // Display weight
             }
         }
     }

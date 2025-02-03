@@ -22,6 +22,9 @@ import mgp2d.core.GameActivity;
 import mgp2d.core.GameEntity;
 import mgp2d.core.GameScene;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+
 public class MainGameScene extends GameScene {
 
     private List<GameEntity> _gameEntities = new ArrayList<>();
@@ -31,6 +34,7 @@ public class MainGameScene extends GameScene {
     private final List<Item> items = new ArrayList<>();
     private Bitmap _backgroundBitmap0;
     private Bitmap _backgroundBitmap1;
+    private Bitmap _backgroundBitmap2;
 
     private Bitmap _winBitmap;
     private Bitmap _loseBitmap;
@@ -84,7 +88,7 @@ public class MainGameScene extends GameScene {
     private int lives = 3;
 
     //Timer
-    private float timer = 30;
+    private float timer = 500;
     private float originalTime;
     private boolean isTimerRunning = true;
 
@@ -122,11 +126,13 @@ public class MainGameScene extends GameScene {
         Lose = false;
         originalTime = timer;
 
+        showStartDialog();
+
         screenHeight = GameActivity.instance.getResources().getDisplayMetrics().heightPixels;
         screenWidth = GameActivity.instance.getResources().getDisplayMetrics().widthPixels;
 
         // Define world size
-        totalWorldWidth = screenWidth * 2f;
+        totalWorldWidth = screenWidth * 3f;
 
         //Create Slider
         volumeSliderWidth = 400;
@@ -138,19 +144,18 @@ public class MainGameScene extends GameScene {
 
         jumpButtonBitmap = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.jumpicon);
 
-
-
         // Load background
         Bitmap bmp = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.background);
         _backgroundBitmap0 = Bitmap.createScaledBitmap(bmp, screenWidth, screenHeight, true);
         _backgroundBitmap1 = Bitmap.createScaledBitmap(bmp, screenWidth, screenHeight, true);
+        _backgroundBitmap2 = Bitmap.createScaledBitmap(bmp, screenWidth, screenHeight, true);
 
         // Initialize player
         player = new PlayerEntity();
         _gameEntities.add(player);
 
         // Initialize TrashBin
-        TrashBin trashBin = new TrashBin(500, screenHeight - 300, R.drawable.trashbin, 100, 150, 0);
+        TrashBin trashBin = new TrashBin(500, screenHeight - 300, R.drawable.trashbin, 150, 150, 0);
         trashBins.add(trashBin);
 
         //Initialize RecyclingBin
@@ -162,13 +167,58 @@ public class MainGameScene extends GameScene {
         joystick = new Joystick(screenWidth / 8f, screenHeight * 4f / 5.5f, 150, 75, true); // True enables sticky mode
 
         // Add platforms
-        platforms.add(new Platform(0, screenHeight - 180, screenWidth * 2, 180 , false)); //Floor
-        platforms.add(new Platform(screenWidth / 2f, screenHeight - 400, 300, 40, false)); // Floating platform
-        platforms.add(new Platform(1700, screenHeight  - 600, 300, 40, true)); // PressurePlate1
-        platforms.add(new Platform(2300, screenHeight  - 800, 1000, 40, false));
+        platforms.add(new Platform(0, screenHeight - 180, screenWidth * 3, 180 , false)); //Floor
+        platforms.add(new Platform(1300, screenHeight - 400, 300, 40, true));
+        platforms.add(new Platform(1700, screenHeight  - 600, 300, 40, false));
+        platforms.add(new Platform(2300, screenHeight  - 800, 400, 40, false));
+        platforms.add(new Platform(2600, screenHeight  - 600, 400, 40, false));
+        platforms.add(new Platform(3600, screenHeight  - 800, 400, 40, true));
+        platforms.add(new Platform(4000, screenHeight  - 800, 400, 40, false));
+        platforms.add(new Platform(10, screenHeight  - 400, 200, 40, true));
+        platforms.add(new Platform(10, screenHeight  - 600, 200, 40, true));
+        platforms.add(new Platform(10, screenHeight  - 800, 500, 40, false));
+        platforms.add(new Platform(4000, screenHeight  - 600, 700, 40, false));
+        platforms.add(new Platform(5400, screenHeight  - 600, 300, 40, true));
+        platforms.add(new Platform(6400, screenHeight  - 600, 200, 40, true));
+        platforms.add(new Platform(2600, screenHeight - 400, 300, 40, true));
+        platforms.add(new Platform(3600, screenHeight - 400, 300, 40, true));
+
 
         //add Pressure Plates
-        pressurePlates.add(new PressurePlate(screenWidth / 2f, screenHeight - 205, 100, 25, 20 , platforms.get(2)));
+        pressurePlates.add(new PressurePlate(1600, screenHeight - 205, 100, 25, 20 , platforms.get(1)));
+        pressurePlates.add(new PressurePlate(2850, screenHeight - 625, 100, 25, 40 , platforms.get(5)));
+        pressurePlates.add(new PressurePlate(2850, screenHeight - 625, 100, 25, 40 , platforms.get(13)));
+        pressurePlates.add(new PressurePlate(500, screenHeight - 205, 100, 25, 50 , platforms.get(7)));
+        pressurePlates.add(new PressurePlate(700, screenHeight - 205, 100, 25, 60 , platforms.get(8)));
+        pressurePlates.add(new PressurePlate(4400, screenHeight - 625, 100, 25, 80 , platforms.get(11)));
+        pressurePlates.add(new PressurePlate(4400, screenHeight - 625, 100, 25, 80 , platforms.get(14)));
+        pressurePlates.add(new PressurePlate(5500, screenHeight - 625, 100, 25, 80 , platforms.get(12)));
+
+
+        // Initialize Items (Recyclable and Non-Recyclable)
+        // ADD ITEMS HERE
+        // ALL RECYCLABLE AND NON RECYCLABLE
+        Bitmap recyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.bottle);
+        Bitmap nonRecyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.trashbag);
+
+        items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new RecyclableObject(platforms.get(2).getX() + 50, platforms.get(2).getY(), recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+        items.add(new NonRecyclableObject(2500, screenHeight  - 850, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+        items.add(new RecyclableObject(2700, screenHeight - 600, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new RecyclableObject(2760, screenHeight - 600, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new RecyclableObject(4100, screenHeight - 850, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new NonRecyclableObject(4200, screenHeight  - 850, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+        items.add(new RecyclableObject(200, screenHeight - 850, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new NonRecyclableObject(50, screenHeight  - 850, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+        items.add(new RecyclableObject(4200, screenHeight - 650, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new RecyclableObject(4300, screenHeight - 250, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new RecyclableObject(5500, screenHeight - 650, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new RecyclableObject(5550, screenHeight - 650, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new NonRecyclableObject(6400, screenHeight  - 650, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+
+
+
 
         // Initialize jump button
         jumpButtonRadius = 100;
@@ -196,19 +246,6 @@ public class MainGameScene extends GameScene {
 
         //Haptic Feedback
         _vibration = (Vibrator) GameActivity.instance.getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
-
-        // Initialize Items (Recyclable and Non-Recyclable)
-        // ADD ITEMS HERE
-        // ALL RECYCLABLE AND NON RECYCLABLE
-        Bitmap recyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.bottle);
-        Bitmap nonRecyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.trashbag);
-
-        items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 10)); // Weight = 10kg
-        items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 10)); // Weight = 10kg
-        items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
-        items.add(new NonRecyclableObject(2500, screenHeight  - 850, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
-
-
 
         //Create Pause
         pauseButtonRadius = 100;
@@ -374,8 +411,8 @@ public class MainGameScene extends GameScene {
                             volumeLevel = (relativeX - volumeSliderX) / volumeSliderWidth;
 
                             // apply new volume level
-                            _bgm.setVolume(volumeLevel, volumeLevel);
-                            _jumpSFX.setVolume(volumeLevel, volumeLevel);
+                            _bgm.setVolume(volumeLevel / 2, volumeLevel / 2);
+                            _jumpSFX.setVolume(volumeLevel * 50, volumeLevel * 50);
                             _pressurePlateSFX.setVolume(volumeLevel, volumeLevel);
 
 
@@ -457,7 +494,7 @@ public class MainGameScene extends GameScene {
 
         canvas.drawBitmap(_backgroundBitmap0, 0, 0, null);
         canvas.drawBitmap(_backgroundBitmap1, _backgroundBitmap0.getWidth(), 0, null);
-
+        canvas.drawBitmap(_backgroundBitmap2, screenWidth * 2, 0, null);
 
         // Position lives relative to the camera
         float livesX = cameraX + 50;
@@ -508,7 +545,7 @@ public class MainGameScene extends GameScene {
         if (!player.ifPickup) {
             // Render joystick
             Paint basePaint = new Paint();
-            basePaint.setColor(Color.GRAY);
+            basePaint.setColor(Color.argb(80, 114, 114, 114));
             basePaint.setStyle(Paint.Style.FILL);
 
             Paint hatPaint = new Paint();
@@ -612,6 +649,20 @@ public class MainGameScene extends GameScene {
         return joystick;
     }
 
+    private void showStartDialog() {
+        GameActivity.instance.runOnUiThread(() -> {
+            new AlertDialog.Builder(GameActivity.instance)
+                    .setTitle("Welcome!")
+                    .setMessage("Recycle the correct trash into the correct bins!")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+        });
+    }
 
     private void handlePickUpOrDrop() {
         if (inventoryItem == null) {
@@ -681,21 +732,35 @@ public class MainGameScene extends GameScene {
                     playerBottom > itemTop && playerTop < itemBottom;
     }
 
+    private boolean checkCollisionPlate(PlayerEntity player, PressurePlate pressurePlate) {
+
+        float playerLeft = player.getPositionX();
+        float playerRight = player.getPositionX() + player.getWidth();
+        float playerTop = player.getPositionY();
+        float playerBottom = player.getPositionY() + player.getHeight();
+
+        float plateLeft = pressurePlate.getX();
+        float plateRight = pressurePlate.getX() + pressurePlate.getWidth();
+        float plateTop = pressurePlate.getY();
+        float plateBottom = pressurePlate.getY() + pressurePlate.getHeight();
+
+        return playerRight > plateLeft && playerLeft < plateRight &&
+                playerBottom > plateTop && playerTop < plateBottom;
+    }
+
+
     private void handlePressurePlateCollision()
     {
         for (PressurePlate pressurePlate : pressurePlates)
         {
             for (TrashBin trashBin : trashBins)
             {
-                if (pressurePlateCollision(trashBin, pressurePlate) && !trashBin.isPickedUp)
+                if (pressurePlateCollision(trashBin, pressurePlate) && checkCollisionPlate(player, pressurePlate) && !trashBin.isPickedUp)
                 {
-//                    CollisionTest = true;
-//                    Test = pressurePlate.currentWeight;
-
                     if (trashBin.getCurrentWeight() >= pressurePlate.weightReq) {
                         pressurePlate.height = 0;
 
-                        if (isPickUpButtonPressed) {
+                        if (isPickUpButtonPressed && !player.ifPickup) {
                             _vibration.vibrate(VibrationEffect.createOneShot(2, 250));
                             _pressurePlateSFX.start();
                         }
@@ -703,7 +768,7 @@ public class MainGameScene extends GameScene {
                         enablePlatform(pressurePlate.relatedPlatform);
                     }
                 }
-                else if (trashBin.isPickedUp)
+                else if (trashBin.isPickedUp && checkCollisionPlate(player, pressurePlate) && isPickUpButtonPressed)
                 {
                     pressurePlate.height = pressurePlate.originalHeight;
 
