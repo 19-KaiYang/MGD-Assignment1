@@ -32,6 +32,11 @@
             tools:ignore="DiscourageApi">
         </activity>
         <activity
+            android:name=".main.dx1221_week3.Options"
+            android:screenOrientation="sensorLandscape"
+            tools:ignore="DiscourageApi">
+        </activity>
+        <activity
             android:name=".main.dx1221_week3.LosePage"
             android:screenOrientation="sensorLandscape"
             tools:ignore="DiscourageApi">
