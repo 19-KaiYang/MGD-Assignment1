@@ -157,7 +157,7 @@ public class PlayerEntity extends GameEntity {
         // Restore the canvas to its original state
         canvas.restore();
 
-        Paint debugPaint = new Paint();
+        /*Paint debugPaint = new Paint();
         debugPaint.setColor(Color.RED);
         debugPaint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(
@@ -166,7 +166,7 @@ public class PlayerEntity extends GameEntity {
                 _position.x + (_animatedSprite.getWidth() /1.8f),
                 _position.y + (_animatedSprite.getHeight() / 1.8f),
                 debugPaint
-        );
+        );*/
 
         Paint platformPaint = new Paint();
         platformPaint.setColor(Color.BLACK);

@@ -58,7 +58,7 @@ public class Platform extends GameEntity {
 
         // Otherwise, render the platform
         Paint platformPaint = new Paint();
-        platformPaint.setColor(Color.GREEN); // Green color for the platform
+        platformPaint.setColor(Color.rgb(127, 181, 40)); // Green color for the platform
         canvas.drawRect(_position.x, _position.y, _position.x + width, _position.y + height, platformPaint);
 
         // Draw bounding box for collision debugging

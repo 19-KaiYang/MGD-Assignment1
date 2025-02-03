@@ -55,8 +55,13 @@ public class PressurePlate extends GameEntity
     @Override
     public void onRender(Canvas canvas) {
         Paint platformPaint = new Paint();
-        platformPaint.setColor(Color.BLUE); // Green color for the platform
+        platformPaint.setColor(Color.rgb(114, 114, 114)); // Green color for the platform
         canvas.drawRect(_position.x, _position.y, _position.x + width, _position.y + height, platformPaint);
+
+        Paint boundingBoxPaint = new Paint();
+        boundingBoxPaint.setColor(Color.BLACK); // Red color for collision box
+        boundingBoxPaint.setStyle(Paint.Style.STROKE); // Outline only
+        canvas.drawRect(_position.x, _position.y, _position.x + width, _position.y + height, boundingBoxPaint);
 
         // Draw weight text above the object
         Paint textPaint = new Paint();

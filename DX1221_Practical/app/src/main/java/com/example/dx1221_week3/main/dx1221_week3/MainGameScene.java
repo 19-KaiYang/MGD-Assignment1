@@ -78,7 +78,7 @@ public class MainGameScene extends GameScene {
     private int lives = 3;
 
     //Timer
-    private float timer = 200;
+    private float timer = 30;
     private float originalTime;
     private boolean isTimerRunning = true;
 
@@ -116,15 +116,9 @@ public class MainGameScene extends GameScene {
         totalWorldWidth = screenWidth * 2f;
 
         // Load background
-        Bitmap bmp = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.gamescene);
+        Bitmap bmp = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.background);
         _backgroundBitmap0 = Bitmap.createScaledBitmap(bmp, screenWidth, screenHeight, true);
         _backgroundBitmap1 = Bitmap.createScaledBitmap(bmp, screenWidth, screenHeight, true);
-
-        Bitmap win = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.win);
-        _winBitmap = Bitmap.createScaledBitmap(win, screenWidth, screenHeight, true);
-
-        Bitmap lose = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.lose);
-        _loseBitmap = Bitmap.createScaledBitmap(lose, screenWidth, screenHeight, true);
 
         // Initialize player
         player = new PlayerEntity();
@@ -143,13 +137,13 @@ public class MainGameScene extends GameScene {
         joystick = new Joystick(screenWidth / 8f, screenHeight * 4f / 5.5f, 150, 75, true); // True enables sticky mode
 
         // Add platforms
-        platforms.add(new Platform(0, screenHeight - 200, screenWidth * 2, 100 , false));
+        platforms.add(new Platform(0, screenHeight - 180, screenWidth * 2, 180 , false)); //Floor
         platforms.add(new Platform(screenWidth / 2f, screenHeight - 400, 300, 40, false)); // Floating platform
         platforms.add(new Platform(1700, screenHeight  - 600, 300, 40, true)); // PressurePlate1
         platforms.add(new Platform(2300, screenHeight  - 800, 1000, 40, false));
 
         //add Pressure Plates
-        pressurePlates.add(new PressurePlate(screenWidth / 2f, screenHeight - 230, 100, 30, 20 , platforms.get(2)));
+        pressurePlates.add(new PressurePlate(screenWidth / 2f, screenHeight - 205, 100, 25, 20 , platforms.get(2)));
 
         // Initialize jump button
         jumpButtonRadius = 100;
