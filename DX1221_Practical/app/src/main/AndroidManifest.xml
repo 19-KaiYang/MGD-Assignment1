@@ -27,12 +27,7 @@
             tools:ignore="DiscourageApi">
         </activity>
         <activity
-            android:name=".main.dx1221_week3.LeaderboardActivity"
-            android:screenOrientation="sensorLandscape"
-            tools:ignore="DiscourageApi">
-        </activity>
-        <activity
-            android:name=".main.dx1221_week3.LeaderBoard"
+            android:name=".main.dx1221_week3.Leaderboard"
             android:screenOrientation="sensorLandscape"
             tools:ignore="DiscourageApi">
         </activity>
