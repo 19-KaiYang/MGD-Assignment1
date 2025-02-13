@@ -202,7 +202,15 @@ public class MainGameScene extends GameScene {
         Bitmap nonRecyclableImage = BitmapFactory.decodeResource(GameActivity.instance.getResources(), R.drawable.trashbag);
 
         items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 10)); // Weight = 10kg
-        items.add(new RecyclableObject(platforms.get(2).getX() + 50, platforms.get(2).getY(), recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new RecyclableObject(900, screenHeight - 500, recyclableImage, 100, 100, 10)); // Weight = 10kg
+        items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+        items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+        items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+        items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+
+        /*items.add(new RecyclableObject(platforms.get(2).getX() + 50, platforms.get(2).getY(), recyclableImage, 100, 100, 10)); // Weight = 10kg
         items.add(new NonRecyclableObject(800, screenHeight - 500, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
         items.add(new NonRecyclableObject(2500, screenHeight  - 850, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
         items.add(new RecyclableObject(2700, screenHeight - 600, recyclableImage, 100, 100, 10)); // Weight = 10kg
@@ -215,7 +223,7 @@ public class MainGameScene extends GameScene {
         items.add(new RecyclableObject(4300, screenHeight - 250, recyclableImage, 100, 100, 10)); // Weight = 10kg
         items.add(new RecyclableObject(5500, screenHeight - 650, recyclableImage, 100, 100, 10)); // Weight = 10kg
         items.add(new RecyclableObject(5550, screenHeight - 650, recyclableImage, 100, 100, 10)); // Weight = 10kg
-        items.add(new NonRecyclableObject(6400, screenHeight  - 650, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg
+        items.add(new NonRecyclableObject(6400, screenHeight  - 650, nonRecyclableImage, 120, 120, 20)); // Weight = 20kg */
 
 
 
